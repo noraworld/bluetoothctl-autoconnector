@@ -1,0 +1,13 @@
+# MAC addresses mapping list for Bluetooth adapters and devices
+#
+# Notation:
+#   <ADAPTER_MAC_ADDRESS>, <DEVICE_MAC_ADDRESS>
+#
+# Tips:
+#   You can check your adapter’s MAC address by `hciconfig` command
+
+# replace this comment with your device name (e.g. iPhone)
+XX:XX:XX:XX:XX:XX, XX:XX:XX:XX:XX:XX
+
+# replace this comment with your device name (e.g. MacBook)
+XX:XX:XX:XX:XX:XX, XX:XX:XX:XX:XX:XX
