@@ -1,10 +1,11 @@
-# MAC addresses mapping list for Bluetooth adapters and devices
+# BD addresses mapping list for Bluetooth adapters and devices
 #
 # Notation:
-#   <ADAPTER_MAC_ADDRESS>, <DEVICE_MAC_ADDRESS>
+#   <ADAPTER_BD_ADDRESS>, <DEVICE_BD_ADDRESS>
 #
 # Tips:
-#   You can check your adapter’s MAC address by `bluetoothctl -- list` command
+#   You can check your adapters’ BD addresses by `bluetoothctl -- list` command
+#   You can check your paired devices’ BD addresses by `bluetoothctl -- paired-devices` command
 
 # replace this comment with your device name (e.g. iPhone)
 XX:XX:XX:XX:XX:XX, XX:XX:XX:XX:XX:XX
