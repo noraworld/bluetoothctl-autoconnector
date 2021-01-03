@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# check if the device is being connected
+# return 'yes' or 'no'
 function is_connected() {
   {
     printf "select $adapter\n\n"
@@ -9,12 +11,13 @@ function is_connected() {
 
 while read line
 do
-  # skip comment lines and blank lines
+  # skip a comment line and a blank line
   if ! [[ $line =~ ^# ]] && ! [[ $line =~ ^([[:blank:]]+.*)*$ ]]; then
-    # Save Bluetooth adapter’s MAC address and device’s MAC address
+    # save Bluetooth adapter’s MAC address and device’s MAC address
     adapter=`echo "$line," | cut -d ',' -f 1`
     device=`echo "$line," | cut -d ',' -f 2`
 
+    # connect the device if not connected
     if [[ $(is_connected) = "no" ]]; then
       {
         printf "select $adapter\n\n"
