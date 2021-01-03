@@ -22,4 +22,4 @@ do
       } | bluetoothctl
     fi
   fi
-done < ./list
+done < $(dirname $0)/list
