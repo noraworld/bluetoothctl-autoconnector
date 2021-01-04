@@ -15,15 +15,27 @@ function usage() {
   echo -e "  -f FILE, --file FILE"
   echo -e "    Attempt to connect only specific devices written in mapping list file"
   echo -e "    For details on how to write a mapping list file, see list.sample"
+  echo -e "  -i, --ignore-sound"
+  echo -e "    Ignore devices to play sounds"
+  echo -e "    When some devices that have already connected to Bluetooth adapters are playing sounds,"
+  echo -e "    bluetoothctl attempts to connect other device, and then the sounds breaks up temporarily"
+  echo -e "    To avoid this, this script does not connect any device by default"
+  echo -e "    when some devices that have already connected to Bluetooth adapters are playing sounds"
 }
 
 is_mapping_file=false
+ignore_sound=false
+
 for opt in "$@"
 do
   case "$opt" in
     '-h' | '--help' )
       usage
       exit 0
+    ;;
+    '-i' | '--ignore-sound' )
+      ignore_sound=true
+      shift 1
     ;;
     '-f' | '--file' )
       if [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
@@ -69,8 +81,20 @@ function is_connected() {
   } | bluetoothctl | grep "Connected: " | sed -e 's/Connected: //' | sed -e 's/^[[:blank:]]*//'
 }
 
+# checks whether some devices play sound or not
+# returns integer of 0 or more (the number of devices playing sound)
+function is_playing() {
+  pacmd list-sink-inputs | grep -c "state: RUNNING"
+}
+
 # connects devices
 if ! $is_mapping_file; then # attempts to connect all devices
+  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
+    echo -e "Error: Some devices now playing sounds" >&2
+    echo -e "       Specify option -i to ignore devices to play sounds" >&2
+    exit 2
+  fi
+
   bluetoothctl -- list | while read line
   do
     adapter=`echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'`
@@ -86,6 +110,12 @@ if ! $is_mapping_file; then # attempts to connect all devices
     done
   done
 else # attempts to connect specific devices written in mapping list
+  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
+    echo -e "Error: Some devices now playing sounds" >&2
+    echo -e "       Specify option -i to ignore devices to play sounds" >&2
+    exit 2
+  fi
+
   while read line
   do
     # skip a comment line and a blank line
