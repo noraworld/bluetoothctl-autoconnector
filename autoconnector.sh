@@ -84,7 +84,22 @@ function is_connected() {
 # checks whether some devices play sound or not
 # returns integer of 0 or more (the number of devices playing sound)
 function is_playing() {
+  # PULSE_RUNTIME_PATH environment variable is necessary
+  # crontab does not recognize the PulseAudio daemon if PULSE_RUNTIME_PATH is missing
+  #
+  # Error message:
+  #   pacmd:
+  #     No PulseAudio daemon running, or not running as session daemon.
+  #   pactl:
+  #     Connection failure: Connection refused
+  #     pa_context_connect() failed: Connection refused
+  #
+  # cf. https://superuser.com/questions/1207581/pacmd-why-doesnt-it-work-from-cron#answer-1243363
+  export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
+
+  # Both pacmd or pactl are fine
   pacmd list-sink-inputs | grep -c "state: RUNNING"
+  # pactl list sink-inputs | grep -c -E "Sink Input #[0-9]{1,}"
 }
 
 # connects devices
