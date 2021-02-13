@@ -10,7 +10,7 @@ function register_crontab() {
 
 fullpath=$(dirname $(realpath $0))
 
-echo "*/1 * * * * ( date; $fullpath/autoconnector.sh; echo ) >> $fullpath/log/\`date '+\%Y-\%m-\%d'\`.log 2>&1" > $fullpath/cron.conf
+echo "*/1 * * * * $fullpath/cron.sh" > $fullpath/cron.conf
 
 if crontab -l 1>/dev/null 2>/dev/null; then
   echo -e "\033[1;33mCAUTION! YOU ARE ABOUT TO OVERWRITE THE EXISTING CRONTAB!!!\033[00m"

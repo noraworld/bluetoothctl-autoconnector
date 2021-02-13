@@ -106,7 +106,7 @@ function is_playing() {
 if ! $is_mapping_file; then # attempts to connect all devices
   if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
     echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "       Specify option -i to ignore devices to play sounds" >&2
+    echo -e "Specify option -i to ignore devices playing sounds" >&2
     exit 2
   fi
 
@@ -127,7 +127,7 @@ if ! $is_mapping_file; then # attempts to connect all devices
 else # attempts to connect specific devices written in mapping list
   if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
     echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "       Specify option -i to ignore devices to play sounds" >&2
+    echo -e "Specify option -i to ignore devices playing sounds" >&2
     exit 2
   fi
 
