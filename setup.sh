@@ -10,28 +10,25 @@ function register_crontab() {
 
 fullpath=$(dirname $(realpath $0))
 
-echo "*/1 * * * * $fullpath/cron.sh" > $fullpath/cron.conf
+# YOU NEED TO DELETE EXISTING CRONTAB FOR AUTOCONNECTOR IF YOU CHANGE THE VALUE OF "autoconnector_crontab"
+autoconnector_crontab="*/1 * * * * $fullpath/cron.sh"
 
-if crontab -l 1>/dev/null 2>/dev/null; then
-  echo -e "\033[1;33mCAUTION! YOU ARE ABOUT TO OVERWRITE THE EXISTING CRONTAB!!!\033[00m"
-  echo -e "\033[2m"
-  crontab -l
-  echo -e "\033[00m"
-  echo -en "Are you sure you want to overwrite? [YES/no]: "
-
-  exec < /dev/tty
-  read confirm
-  echo
-
-  if [[ $confirm = "YES" ]]; then
-    register_crontab
-  else
-    echo -e "Canceled"
-    echo -e "Add the following line to crontab manually"
-    echo -e "\033[2m"
-    cat $fullpath/cron.conf
-    echo -en "\033[00m"
+# check if crontab for autoconnector is registered
+while read line
+do
+  if [[ "$line" = "$autoconnector_crontab" ]]; then
+    echo "Error: crontab for autoconnector already registered" >&2
+    exit 2
   fi
+done << FILE
+  $(crontab -l 2>/dev/null)
+FILE
+
+if [[ $(crontab -l 2>/dev/null) == "" ]]; then
+  echo "$autoconnector_crontab" > $fullpath/cron.conf
 else
-  register_crontab
+  echo -e "$(crontab -l 2>/dev/null)\n\n$autoconnector_crontab" > $fullpath/cron.conf
 fi
+
+register_crontab
+rm $fullpath/cron.conf
