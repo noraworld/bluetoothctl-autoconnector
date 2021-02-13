@@ -1,5 +1,12 @@
 # BD addresses mapping list for Bluetooth adapters and devices
 #
+# Usage:
+#   1. Copy this or create new file as name "list"
+#      $ mv list.sample list
+#   2. Write combinations of your adapters’ DB address and your paired devices’ DB address following the notation below
+#   3. Execute autoconnector with option -f
+#      $ ./autoconnector.sh -f list
+#
 # Notation:
 #   <ADAPTER_BD_ADDRESS>, <DEVICE_BD_ADDRESS>
 #

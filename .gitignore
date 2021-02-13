@@ -1,4 +1,4 @@
 list
-cron.conf
+
 log/*
 !log/.keep

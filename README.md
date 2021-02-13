@@ -13,8 +13,10 @@ $ ./autoconnector.sh -f <MAPPING_LIST_FILE>
 ```
 For details on how to write a mapping list file, see `list.sample`.
 
+Use `./autoconnector.sh -h` for more information.
+
 ## Register crontab
 ```shell
 $ ./setup.sh
 ```
-crontab will execute `autoconnector.sh` every minute. This will reconnect to paired Bluetooth devices automatically even if they disconnect from a computer, and keep connecting them.
+crontab will execute `autoconnector.sh` every minute. This will reconnect paired Bluetooth devices automatically even if they disconnect from a computer, and keep connecting them.
