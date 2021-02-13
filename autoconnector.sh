@@ -16,7 +16,7 @@ function usage() {
   echo -e "    Attempt to connect only specific devices written in mapping list file"
   echo -e "    For details on how to write a mapping list file, see list.sample"
   echo -e "  -i, --ignore-sound"
-  echo -e "    Ignore devices to play sounds"
+  echo -e "    Ignore devices playing sounds"
   echo -e "    When some devices that have already connected to Bluetooth adapters are playing sounds,"
   echo -e "    bluetoothctl attempts to connect other device, and then the sounds breaks up temporarily"
   echo -e "    To avoid this, this script does not connect any device by default"
