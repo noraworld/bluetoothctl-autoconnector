@@ -7,7 +7,6 @@ fullpath=$(dirname $(realpath $0))
 (
   echo "========== $(date) =========="
   $fullpath/autoconnector.sh | sed -E 's/\xd$//g' # sed: replace the last "^M" with "\n"
-  echo
   echo "The end of bluetoothctl or autoconnector output..."
   echo "=================================================="
   echo
