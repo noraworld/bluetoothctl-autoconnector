@@ -119,9 +119,10 @@ if ! $is_mapping_file; then # attempts to connect all devices
       if [[ $(is_connected) = "no" ]]; then
         {
           printf "select $adapter\n\n"
-          printf "connect $device\n\n"
+          printf "power on\n\n"
           sleep 2
-          printf "exit"
+          printf "connect $device\n\n"
+          sleep 4
         } | bluetoothctl
 
         echo
