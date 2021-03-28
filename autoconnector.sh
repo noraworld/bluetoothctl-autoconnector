@@ -98,8 +98,8 @@ function is_playing() {
   export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
 
   # Both pacmd or pactl are fine
-  pacmd list-sink-inputs | grep -c "state: RUNNING"
-  # pactl list sink-inputs | grep -c -E "Sink Input #[0-9]{1,}"
+  # pacmd list-sink-inputs | grep -c "state: RUNNING"
+  pactl list sink-inputs | grep -c "Corked: no"
 }
 
 # connects devices
