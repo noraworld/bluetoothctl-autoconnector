@@ -1,0 +1,189 @@
+#!/bin/bash
+
+# The origin of the command name is "blue fast animal"
+# It stands for the command to operate bluetoothctl quickly
+#
+# https://onekindplanet.org/top-10/top-10-worlds-fastest-animals/
+
+
+PROGNAME=$(basename $0)
+
+for opt in "$@"
+do
+  case "$opt" in
+    '-h' | '--help' )
+      usage
+      exit 0
+    ;;
+    '--' | '-' )
+      shift 1
+      param+=( "$@" )
+      break
+    ;;
+    -* )
+      echo "$PROGNAME: illegal option -- '$(echo $1 | sed 's/^-*//')'" 1>&2
+      exit 1
+    ;;
+    * )
+      if [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
+        argv+=( "$1" )
+        shift 1
+      fi
+    ;;
+  esac
+done
+
+
+function main() {
+  adapters=()
+
+  while read line
+  do
+    adapter=$(echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/')
+    adapters=(${adapters[@]} "select $adapter\n\npaired-devices\n\n")
+  done <<< "$(bluetoothctl -- list)"
+
+  if [[ "${argv[0]}" = "" ]] || [[ "${argv[0]}" = "list" ]]; then
+    if [[ "${argv[1]}" = "" ]]; then
+      list
+    elif [[ "${argv[1]}" = "diff" ]]; then
+      diff -u ~/.marlin_aliases <(list)
+    else
+      echo "Unknown command: ${argv[1]}" >&2
+      exit 1
+    fi
+  elif [[ "${argv[0]}" = "alias" ]]; then
+    if [[ "${argv[1]}" = "" ]]; then
+      cat ~/.marlin_aliases
+    elif [[ "${argv[1]}" = "edit" ]]; then
+      $EDITOR ~/.marlin_aliases
+    else
+      echo "Unknown command: ${argv[1]}" >&2
+      exit 1
+    fi
+  elif [[ "${argv[1]}" = "register" ]]; then
+    register
+  else
+    operate
+  fi
+}
+
+
+function list() {
+  echo -e ${adapters[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //"
+}
+
+
+function operate() {
+  target_extract=$(echo -e ${adapters[@]} | bluetoothctl | grep -i -E "Device .+? ${argv[0]}" -B 2)
+
+  if [[ "${target_extract}" = "" ]]; then
+    echo "No such device: ${argv[0]}" >&2
+    exit 2
+  fi
+
+  device=$(echo "${target_extract}" | grep "Device " | awk '{print $2}')
+  adapter=$(echo "${target_extract}" | grep "Controller " | awk '{print $2}')
+
+  if [[ "${argv[1]}" = "" ]] || [[ "${argv[1]}" = "info" ]]; then
+    echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//"
+  elif [[ "${argv[1]}" = "remove" ]]; then
+    {
+      printf "select ${adapter}\n\n"
+      sleep 3
+      printf "power on\n\n"
+      sleep 5
+      printf "remove ${device}\n\n"
+      sleep 5
+      printf "remove ${device}\n\n"
+      sleep 5
+      printf "remove ${device}\n\n"
+      sleep 5
+      printf "exit\n\n"
+    } | bluetoothctl
+  else
+    {
+      printf "select ${adapter}\n\n"
+      sleep 3
+      printf "power on\n\n"
+      sleep 5
+      printf "${argv[1]} ${device}\n\n"
+      sleep 5
+      printf "exit\n\n"
+    } | bluetoothctl
+  fi
+}
+
+
+function register() {
+  if [ ! -e ~/.marlin_aliases ]; then
+    touch ~/.marlin_aliases
+  fi
+
+  device_hit_count=$(cat ~/.marlin_aliases | grep -c -i "${argv[0]}")
+
+  if [[ "$device_hit_count" -eq 0 ]]; then
+    echo -e "No such device: ${argv[0]}\n" >&2
+    echo "Hint: use ~/.marlin_aliases like this" >&2
+    echo "echo \"<YOUR_DEVICE_BD_ADDRESS> <YOUR_DEVICE_NAME>\" >> ~/.marlin_aliases" >&2
+    exit 2
+  elif [[ "$device_hit_count" -ge 2 ]]; then
+    echo "Too many devices hit by word \"${argv[0]}\"" >&2
+    exit 2
+  fi
+
+  not_paired_adapter=""
+  while read line
+  do
+    adapter=$(echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/')
+
+    not_paired_adapter=$(paired_devices)
+    if [[ "$not_paired_adapter" = "" ]]; then
+      not_paired_adapter=$adapter
+      break
+    fi
+  done <<< "$(bluetoothctl -- list)"
+
+  if [[ "$not_paired_adapter" = "" ]]; then
+    echo "No free adapters found" >&2
+    exit 2
+  fi
+
+  device=$(cat ~/.marlin_aliases | grep -i "${argv[0]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
+
+  while [[ "$(paired_devices)" == "" ]]
+  do
+    {
+      printf "select $not_paired_adapter\n\n"
+      sleep 3
+      printf "power on\n\n"
+      sleep 5
+      printf "paired-devices\n\n"
+      sleep 2
+      printf "scan on\n\n"
+      sleep 10
+      printf "pair $device\n\n"
+      sleep 5
+      printf "yes\n\n"
+      sleep 10
+      printf "trust $device\n\n"
+      sleep 2
+      printf "scan off\n\n"
+      sleep 2
+      printf "connect $device\n\n"
+      sleep 7
+      printf "exit\n\n"
+    } | bluetoothctl
+  done
+}
+
+
+function paired_devices() {
+  {
+    printf "select $adapter\n\n"
+    printf "paired-devices\n\n"
+  } | bluetoothctl | grep "Device " | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'
+}
+
+
+main
