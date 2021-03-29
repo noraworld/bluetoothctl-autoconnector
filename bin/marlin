@@ -64,7 +64,7 @@ function list() {
 
 
 function operate() {
-  target_extract=$(echo -e ${adapters[@]} | bluetoothctl | grep -i -E "Device .+? ${argv[0]}" -B 2)
+  target_extract=$(echo -e ${adapters[@]} | bluetoothctl | grep "Device " -B 2 | grep -i "${argv[0]}" -B 2)
 
   if [[ "${target_extract}" = "" ]]; then
     echo "No such device: ${argv[0]}" >&2
@@ -182,8 +182,8 @@ function usage() {
   printf  "       %${#PROGNAME}s [list]\n"
   printf  "       %${#PROGNAME}s list [diff]\n"
   printf  "       %${#PROGNAME}s alias [edit]\n"
-  printf  "       %${#PROGNAME}s DEVICE_NAME [info]\n"
-  printf  "       %${#PROGNAME}s DEVICE_NAME [register|ANY_OTHER_BLUETOOTHCTL_COMMAND]\n"
+  printf  "       %${#PROGNAME}s DEVICE_NAME|DEVICE_BD_ADDRESS [info]\n"
+  printf  "       %${#PROGNAME}s DEVICE_NAME|DEVICE_BD_ADDRESS [register|ANY_OTHER_BLUETOOTHCTL_COMMAND]\n"
   echo
   echo
   echo -e "Description:"
@@ -200,23 +200,23 @@ function usage() {
   echo
   echo -e "	alias"
   echo -e "		Show aliases written in ~/.marlin_aliases"
-  echo -e "		This file should be written in the form of \"<DEVICE_DB_ADDRESS> <DEVICE_NAME>\""
-  echo -e "		You can use \"<DEVICE_NAME>\" written in this file as a device DB address alias"
+  echo -e "		This file should be written in the form of \"<DEVICE_BD_ADDRESS> <DEVICE_NAME>\""
+  echo -e "		You can use \"<DEVICE_NAME>\" written in this file as a device BD address alias"
   echo
   echo -e "	alias edit"
   echo -e "		Edit ~/.marlin_aliases with your environment's default editor"
   echo
-  echo -e "	DEVICE_NAME [info]"
+  echo -e "	DEVICE_NAME|DEVICE_BD_ADDRESS [info]"
   echo -e "		Show specified device's information"
   echo -e "		\"info\" can be omittable"
   echo -e "		e.g. \"$PROGNAME macbook info\""
   echo
-  echo -e "	DEVICE_NAME register"
+  echo -e "	DEVICE_NAME|DEVICE_BD_ADDRESS register"
   echo -e "		Pair, trust, and connect a specified device"
   echo -e "		It attempts to pair the device forever unless it is not paired"
   echo -e "		e.g. \"$PROGNAME macbook register\""
   echo
-  echo -e "	DEVICE_NAME ANY_OTHER_BLUETOOTHCTL_COMMAND"
+  echo -e "	DEVICE_NAME|DEVICE_BD_ADDRESS ANY_OTHER_BLUETOOTHCTL_COMMAND"
   echo -e "		Operate any bluetoothctl command to a specified device, like \"remove\""
   echo -e "		e.g. \"$PROGNAME macbook remove\""
   echo
@@ -224,7 +224,7 @@ function usage() {
   echo -e "Tips:"
   echo -e "	\"DEVICE_NAME\" doesn't have to be exactly matched"
   echo -e "	For example, if \"DEVICE_NAME\" is \"MacBook Pro\", \"macbook\" is also valid"
-  echo -e "	unless it doesn't be duplicated with any other device DB address aliases"
+  echo -e "	unless it doesn't be duplicated with any other device BD address aliases"
   echo
   echo
   echo -e "Options:"
