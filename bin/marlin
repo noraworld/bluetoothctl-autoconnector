@@ -151,30 +151,32 @@ function register() {
 
   device=$(cat ~/.marlin_aliases | grep -i "${argv[0]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
 
-  while [[ "$(paired_devices)" == "" ]]
-  do
-    {
-      printf "select $not_paired_adapter\n\n"
-      sleep 3
-      printf "power on\n\n"
-      sleep 5
-      printf "paired-devices\n\n"
-      sleep 2
-      printf "scan on\n\n"
-      sleep 10
+  {
+    printf "select $not_paired_adapter\n\n"
+    sleep 3
+    printf "power on\n\n"
+    sleep 5
+    printf "paired-devices\n\n"
+    sleep 2
+    printf "scan on\n\n"
+    sleep 10
+
+    while [[ "$(paired_devices)" = "" ]]
+    do
       printf "pair $device\n\n"
       sleep 5
       printf "yes\n\n"
       sleep 10
-      printf "trust $device\n\n"
-      sleep 2
-      printf "scan off\n\n"
-      sleep 2
-      printf "connect $device\n\n"
-      sleep 7
-      printf "exit\n\n"
-    } | bluetoothctl
-  done
+    done
+
+    printf "trust $device\n\n"
+    sleep 2
+    printf "scan off\n\n"
+    sleep 2
+    printf "connect $device\n\n"
+    sleep 7
+    printf "exit\n\n"
+  } | bluetoothctl
 }
 
 
