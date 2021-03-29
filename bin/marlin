@@ -34,6 +34,21 @@ do
 done
 
 
+INTERVAL_AFTER_SELECT=3
+INTERVAL_AFTER_POWER_ON=5
+
+INTERVAL_AFTER_PAIRED_DEVICES=2
+INTERVAL_AFTER_SCAN_ON=10
+INTERVAL_AFTER_PAIR=5
+INTERVAL_AFTER_YES=10
+INTERVAL_AFTER_TRUST=2
+INTERVAL_AFTER_SCAN_OFF=2
+INTERVAL_AFTER_CONNECT=7
+
+INTERVAL_AFTER_REMOVE=5
+INTERVAL_AFTER_ANY_OTHER_COMMAND=5
+
+
 function main() {
   adapters=()
 
@@ -90,25 +105,25 @@ function operate() {
   elif [[ "${argv[1]}" = "remove" ]]; then
     {
       printf "select ${adapter}\n\n"
-      sleep 3
+      sleep $INTERVAL_AFTER_SELECT
       printf "power on\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_POWER_ON
       printf "remove ${device}\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_REMOVE
       printf "remove ${device}\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_REMOVE
       printf "remove ${device}\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_REMOVE
       printf "exit\n\n"
     } | bluetoothctl
   else
     {
       printf "select ${adapter}\n\n"
-      sleep 3
+      sleep $INTERVAL_AFTER_SELECT
       printf "power on\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_POWER_ON
       printf "${argv[1]} ${device}\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_ANY_OTHER_COMMAND
       printf "exit\n\n"
     } | bluetoothctl
   fi
@@ -153,28 +168,28 @@ function register() {
 
   {
     printf "select $not_paired_adapter\n\n"
-    sleep 3
+    sleep $INTERVAL_AFTER_SELECT
     printf "power on\n\n"
-    sleep 5
+    sleep $INTERVAL_AFTER_POWER_ON
     printf "paired-devices\n\n"
-    sleep 2
+    sleep $INTERVAL_AFTER_PAIRED_DEVICES
     printf "scan on\n\n"
-    sleep 10
+    sleep $INTERVAL_AFTER_SCAN_ON
 
     while [[ "$(paired_devices)" = "" ]]
     do
       printf "pair $device\n\n"
-      sleep 5
+      sleep $INTERVAL_AFTER_PAIR
       printf "yes\n\n"
-      sleep 10
+      sleep $INTERVAL_AFTER_YES
     done
 
     printf "trust $device\n\n"
-    sleep 2
+    sleep $INTERVAL_AFTER_TRUST
     printf "scan off\n\n"
-    sleep 2
+    sleep $INTERVAL_AFTER_SCAN_OFF
     printf "connect $device\n\n"
-    sleep 7
+    sleep $INTERVAL_AFTER_CONNECT
     printf "exit\n\n"
   } | bluetoothctl
 }
