@@ -185,34 +185,47 @@ function usage() {
   printf  "       %${#PROGNAME}s DEVICE_NAME [info]\n"
   printf  "       %${#PROGNAME}s DEVICE_NAME [register|ANY_OTHER_BLUETOOTHCTL_COMMAND]\n"
   echo
+  echo
   echo -e "Description:"
   echo -e "	Operate command \"bluetoothctl\" very easily and quickly"
+  echo
   echo
   echo -e "Arguments:"
   echo -e "	[list]"
   echo -e "		Show all devices paired with all adapters"
   echo -e "		This operation is same without arguments"
+  echo
   echo -e "	list diff"
   echo -e "		Show diff between all paired devices and device address aliases"
+  echo
   echo -e "	alias"
   echo -e "		Show aliases written in ~/.marlin_aliases"
   echo -e "		This file should be written in the form of \"<DEVICE_DB_ADDRESS> <DEVICE_NAME>\""
   echo -e "		You can use \"<DEVICE_NAME>\" written in this file as a device DB address alias"
+  echo
   echo -e "	alias edit"
   echo -e "		Edit ~/.marlin_aliases with your environment's default editor"
+  echo
   echo -e "	DEVICE_NAME [info]"
   echo -e "		Show specified device's information"
   echo -e "		\"info\" can be omittable"
+  echo -e "		e.g. \"$PROGNAME macbook info\""
+  echo
   echo -e "	DEVICE_NAME register"
   echo -e "		Pair, trust, and connect a specified device"
   echo -e "		It attempts to pair the device forever unless it is not paired"
+  echo -e "		e.g. \"$PROGNAME macbook register\""
+  echo
   echo -e "	DEVICE_NAME ANY_OTHER_BLUETOOTHCTL_COMMAND"
   echo -e "		Operate any bluetoothctl command to a specified device, like \"remove\""
+  echo -e "		e.g. \"$PROGNAME macbook remove\""
+  echo
   echo
   echo -e "Tips:"
   echo -e "	\"DEVICE_NAME\" doesn't have to be exactly matched"
   echo -e "	For example, if \"DEVICE_NAME\" is \"MacBook Pro\", \"macbook\" is also valid"
   echo -e "	unless it doesn't be duplicated with any other device DB address aliases"
+  echo
   echo
   echo -e "Options:"
   echo -e "	-h, --help"
