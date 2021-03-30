@@ -32,15 +32,15 @@ I connect all devices that play sounds with Raspberry Pi as audio profile (A2DP)
 
 This system is awesome for me, but the devices that play sounds are not always connecting with Raspberry Pi. I take my iPhone outside, then it disconnects from Raspberry Pi. MacBook sleeps or shutdowns, then it disconnects from Raspberry Pi in the same way. So I wanted to reconnect them with Raspberry Pi automatically when they is connectable even if they disconnect from it, and keep connecting. That’s why I made this tool.
 
-# Troubleshooting
-## Failed to create secure directory
-### Problem
+## Troubleshooting
+### Failed to create secure directory
+#### Problem
 An error occurs like this.
 ```
 Failed to create secure directory (/run/user/1000/pulse/): No such file or directory
 ```
 
-### Solution
+#### Solution
 Restart PulseAudio daemon and system.
 ```shell
 systemctl --user restart pulseaudio
