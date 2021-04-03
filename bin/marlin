@@ -64,7 +64,7 @@ function list() {
 
 
 function operate() {
-  target_extract=$(echo -e ${adapters[@]} | bluetoothctl | grep "Device " -B 2 | grep -i "${argv[0]}" -B 2)
+  target_extract=$(echo -e "${adapters[@]}" | bluetoothctl | grep -E "^Device " -B 2 | grep -i -E "^Device ([0-9A-F]{2}:){5}[0-9A-F]{2} ${argv[0]}" -B 2)
 
   if [[ "${target_extract}" = "" ]]; then
     echo "No such device: ${argv[0]}" >&2
@@ -72,7 +72,7 @@ function operate() {
   fi
 
   device=$(echo "${target_extract}" | grep "Device " | awk '{print $2}')
-  adapter=$(echo "${target_extract}" | grep "Controller " | awk '{print $2}')
+  adapter=$(echo "${target_extract}" | grep -oE -e "Controller ([0-9A-F]{2}:){5}[0-9A-F]{2}" -e "select ([0-9A-F]{2}:){5}[0-9A-F]{2}" | awk '{print $2}')
 
   if [[ "${argv[1]}" = "" ]] || [[ "${argv[1]}" = "info" ]]; then
     echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//"
