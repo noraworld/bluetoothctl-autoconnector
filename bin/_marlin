@@ -1,0 +1,23 @@
+#compdef marlin
+
+_marlin() {
+  local -a devices
+  # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
+  devices=( ${(uf)"$(cat ~/.marlin_aliases | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g")"} )
+
+  local -a operations
+  operations=(connect disconnect info register remove)
+
+  _arguments '1: :->device' '2: :->operation'
+
+  case "$state" in
+    device)
+      _values $state $devices
+      ;;
+    operation)
+      _values $state $operations
+      ;;
+  esac
+}
+
+compdef _marlin marlin
