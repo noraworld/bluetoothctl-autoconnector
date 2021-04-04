@@ -84,18 +84,21 @@ function operate() {
 
   if [[ "${argv[0]}" = "info" ]] || [[ "${argv[0]}" = "status" ]]; then
     echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//"
-  elif [[ "${argv[0]}" = "remove" ]]; then
+  elif [[ "${argv[0]}" = "remove" ]] || [[ "${argv[0]}" = "delete" ]]; then
     {
       printf "select ${adapter}\n\n"
       sleep $INTERVAL_AFTER_SELECT
       printf "power on\n\n"
       sleep $INTERVAL_AFTER_POWER_ON
-      printf "remove ${device}\n\n"
-      sleep $INTERVAL_AFTER_REMOVE
-      printf "remove ${device}\n\n"
-      sleep $INTERVAL_AFTER_REMOVE
-      printf "remove ${device}\n\n"
-      sleep $INTERVAL_AFTER_REMOVE
+      printf "paired-devices\n\n"
+      sleep $INTERVAL_AFTER_PAIRED_DEVICES
+
+      while [[ "$(paired_devices)" != "" ]]
+      do
+        printf "remove ${device}\n\n"
+        sleep $INTERVAL_AFTER_REMOVE
+      done
+
       printf "exit\n\n"
     } | bluetoothctl
   else

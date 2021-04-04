@@ -4,7 +4,7 @@
 
 _marlin() {
   local -a operations
-  operations=( alias connect disconnect info list register remove status )
+  operations=( alias connect delete disconnect info list register remove status )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
   local -a devices
