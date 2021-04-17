@@ -1,0 +1,17 @@
+#!/bin/bash
+
+SLEEP_INTERVAL=5
+
+export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
+
+while [[ "$(pactl list sink-inputs | grep -c "Corked: no")" != 0 ]]; do
+  echo -e "Error: Some devices now playing sounds. Will try to play dummy sound after ${SLEEP_INTERVAL} seconds..."
+  sleep $SLEEP_INTERVAL
+done
+
+if [[ "$(pactl list sink-inputs | grep -c "Corked: no")" = 0 ]]; then
+  aplay -r 8000 -f S16_LE /dev/zero
+else
+  echo -e "Error: Some devices now playing sounds. Please try again. Bye!" >&2
+  exit 2
+fi
