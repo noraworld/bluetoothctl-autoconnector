@@ -97,9 +97,10 @@ function is_playing() {
   # cf. https://superuser.com/questions/1207581/pacmd-why-doesnt-it-work-from-cron#answer-1243363
   export PULSE_RUNTIME_PATH="/run/user/$(id -u)/pulse/"
 
+  # count the number of devices that play sound except for dummy sound
   # Both pacmd or pactl are fine
   # pacmd list-sink-inputs | grep -c "state: RUNNING"
-  pactl list sink-inputs | grep -c "Corked: no"
+  pactl list sink-inputs | grep -e "Corked: " -e "media\.name = " | tr -d '\n' | grep -co "Corked: no\s*media\.name = \"Loopback from"
 }
 
 # connects devices
