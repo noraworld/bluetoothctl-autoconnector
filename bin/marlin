@@ -36,14 +36,18 @@ function main() {
     if [[ "${argv[1]}" = "" ]]; then
       list
     elif [[ "${argv[1]}" = "diff" ]]; then
-      diff -u ~/.marlin_aliases <(list)
+      if type colordiff 1>/dev/null 2>/dev/null; then
+        colordiff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
+      else
+        diff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
+      fi
     else
       echo "Unknown command: ${argv[1]}" >&2
       exit 1
     fi
   elif [[ "${argv[0]}" = "alias" ]]; then
     if [[ "${argv[1]}" = "" ]]; then
-      cat ~/.marlin_aliases
+      alias
     elif [[ "${argv[1]}" = "edit" ]]; then
       $EDITOR ~/.marlin_aliases
     else
@@ -59,7 +63,12 @@ function main() {
 
 
 function list() {
-  echo -e ${adapters[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //"
+  echo -e ${adapters[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort
+}
+
+
+function alias() {
+  cat ~/.marlin_aliases | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e '/^$/d' | sort
 }
 
 
