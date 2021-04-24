@@ -15,6 +15,7 @@ _marlin() {
     "remove[Delete specified devices paired with adapters]"
     "status[Show specified devices' information]"
     "pulse-check[Show all devices' information playing sounds in realtime]"
+    "log[Show latest autoconnector log in realtime]"
   )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
