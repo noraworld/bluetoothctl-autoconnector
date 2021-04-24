@@ -73,6 +73,19 @@ function main() {
       argv=( "${argv[@]:1}" )
       echo
     done
+  elif [[ "$subcommand" = "pulse-check" ]]; then
+    watch -d -n 1                            \
+      "pacmd list-sink-inputs | grep         \
+      -e \"sink input(s) available.\"        \
+      -e \"index: [0-9]*\"                   \
+      -e \"state: [A-Z]*\"                   \
+      -e \"sink: [0-9]* <.*>\"               \
+      -e \"current latency: [0-9|\.]* ms\"   \
+      -e \"requested latency: [0-9|\.]* ms\" \
+      -e \"sample spec: \"                   \
+      -e \"properties:\"                     \
+      -e \"media\.role = \"                  \
+      -e \"media\.name = \""
   else
     if [[ "${argv[0]}" = "" ]]; then
       echo "Device is missing" >&2
