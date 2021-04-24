@@ -4,13 +4,23 @@
 
 _marlin() {
   local -a operations
-  operations=( alias connect delete disconnect info list register remove status )
+  operations=(
+    "alias[Show aliases written in ~/.marlin_aliases]"
+    "connect[Connect specified devices]"
+    "delete[Delete specified devices paired with adapters]"
+    "disconnect[Disconnect specified devices]"
+    "info[Show specified devices' information]"
+    "list[Show all devices paired with adapters]"
+    "register[Pair, trust, and connect specified devices]"
+    "remove[Delete specified devices paired with adapters]"
+    "status[Show specified devices' information]"
+  )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
   local -a devices
-  devices=( ${(uf)"$(cat ~/.marlin_aliases | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g")"} )
+  devices=( all ${(uf)"$(cat ~/.marlin_aliases | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e '/^$/d' | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g")"} )
 
-  _arguments '1: :->operation' '2: :->device'
+  _arguments '1: :->operation' '*: :->device'
 
   case "$state" in
     operation)

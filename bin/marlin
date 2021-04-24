@@ -24,46 +24,62 @@ INTERVAL_AFTER_ANY_OTHER_COMMAND=3
 
 
 function main() {
+  IFS=$'\n'
+
   adapters=()
+  adapters_cmd=()
 
   while read line
   do
     adapter=$(echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/')
-    adapters=(${adapters[@]} "select $adapter\n\npaired-devices\n\n")
+    adapters=(${adapters[@]} "$adapter")
+    adapters_cmd=(${adapters_cmd[@]} "select $adapter\n\npaired-devices\n\n")
   done <<< "$(bluetoothctl -- list)"
 
-  if [[ "${argv[0]}" = "" ]] || [[ "${argv[0]}" = "list" ]]; then
-    if [[ "${argv[1]}" = "" ]]; then
+  if [[ "${argv[0]}" = "all" ]] && [[ "${argv[1]}" = "" ]]; then
+    argv=( $(list | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g") )
+  fi
+
+  if [[ "$subcommand" = "" ]] || [[ "$subcommand" = "list" ]]; then
+    if [[ "${argv[0]}" = "" ]]; then
       list
-    elif [[ "${argv[1]}" = "diff" ]]; then
+    elif [[ "${argv[0]}" = "diff" ]]; then
       if type colordiff 1>/dev/null 2>/dev/null; then
         colordiff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
       else
         diff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
       fi
     else
-      echo "Unknown command: ${argv[1]}" >&2
+      echo "Unknown command: ${argv[0]}" >&2
       exit 1
     fi
-  elif [[ "${argv[0]}" = "alias" ]]; then
-    if [[ "${argv[1]}" = "" ]]; then
+  elif [[ "$subcommand" = "alias" ]]; then
+    if [[ "${argv[0]}" = "" ]]; then
       alias
-    elif [[ "${argv[1]}" = "edit" ]]; then
+    elif [[ "${argv[0]}" = "edit" ]]; then
       $EDITOR ~/.marlin_aliases
     else
-      echo "Unknown command: ${argv[1]}" >&2
+      echo "Unknown command: ${argv[0]}" >&2
       exit 1
     fi
-  elif [[ "${argv[0]}" = "register" ]]; then
-    register
+  elif [[ "$subcommand" = "register" ]]; then
+    while [[ "${argv[0]}" != "" ]]; do
+      register
+      argv=( "${argv[@]:1}" )
+      echo
+    done
   else
-    operate
+    while [[ "${argv[0]}" != "" ]]; do
+      operate
+      argv=( "${argv[@]:1}" )
+      echo
+    done
   fi
 }
 
 
 function list() {
-  echo -e ${adapters[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort
+  (echo -e ${adapters_cmd[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort) | (echo "No paired devices found" >&2)
 }
 
 
@@ -73,27 +89,27 @@ function alias() {
 
 
 function operate() {
-  if [[ "${argv[1]}" = "" ]]; then
+  if [[ "${argv[0]}" = "" ]]; then
     echo "Device is missing" >&2
     exit 1
   fi
 
-  target_extract=$(echo -e "${adapters[@]}" | bluetoothctl | grep -E "^Device " -B 2 | grep -i -E "^Device ([0-9A-F]{2}:){5}[0-9A-F]{2} ${argv[1]}" -B 2)
+  target_extract=$(echo -e "${adapters_cmd[@]}" | bluetoothctl | grep -E "^Device " -B 2 | grep -i -E "^Device ([0-9A-F]{2}:){5}[0-9A-F]{2} ${argv[0]}" -B 2)
 
   if [[ "${target_extract}" = "" ]]; then
-    echo "No such device registered: ${argv[1]}" >&2
+    echo "No such device registered: ${argv[0]}" >&2
     echo
     echo "The following command might help you" >&2
-    echo "$PROGNAME register ${argv[1]}" >&2
+    echo "$PROGNAME register ${argv[0]}" >&2
     exit 2
   fi
 
   device=$(echo "${target_extract}" | grep "Device " | awk '{print $2}')
   adapter=$(echo "${target_extract}" | grep -oE -e "Controller ([0-9A-F]{2}:){5}[0-9A-F]{2}" -e "select ([0-9A-F]{2}:){5}[0-9A-F]{2}" | awk '{print $2}')
 
-  if [[ "${argv[0]}" = "info" ]] || [[ "${argv[0]}" = "status" ]]; then
+  if [[ "$subcommand" = "info" ]] || [[ "$subcommand" = "status" ]]; then
     echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//"
-  elif [[ "${argv[0]}" = "remove" ]] || [[ "${argv[0]}" = "delete" ]]; then
+  elif [[ "$subcommand" = "remove" ]] || [[ "$subcommand" = "delete" ]]; then
     {
       printf "select ${adapter}\n\n"
       sleep $INTERVAL_AFTER_SELECT
@@ -116,7 +132,7 @@ function operate() {
       sleep $INTERVAL_AFTER_SELECT
       printf "power on\n\n"
       sleep $INTERVAL_AFTER_POWER_ON
-      printf "${argv[0]} ${device}\n\n"
+      printf "$subcommand ${device}\n\n"
       sleep $INTERVAL_AFTER_ANY_OTHER_COMMAND
       printf "exit\n\n"
     } | bluetoothctl
@@ -129,15 +145,15 @@ function register() {
     touch ~/.marlin_aliases
   fi
 
-  device_hit_count=$(cat ~/.marlin_aliases | grep -c -i "${argv[1]}")
+  device_hit_count=$(cat ~/.marlin_aliases | grep -c -i "${argv[0]}")
 
   if [[ "$device_hit_count" -eq 0 ]]; then
-    echo -e "No such device: ${argv[1]}\n" >&2
+    echo -e "No such device: ${argv[0]}\n" >&2
     echo "Hint: use ~/.marlin_aliases like this" >&2
     echo "echo \"<YOUR_DEVICE_BD_ADDRESS> <YOUR_DEVICE_NAME>\" >> ~/.marlin_aliases" >&2
     exit 2
   elif [[ "$device_hit_count" -ge 2 ]]; then
-    echo "Too many devices hit by word \"${argv[1]}\"" >&2
+    echo "Too many devices hit by word \"${argv[0]}\"" >&2
     exit 2
   fi
 
@@ -158,7 +174,7 @@ function register() {
     exit 2
   fi
 
-  device=$(cat ~/.marlin_aliases | grep -i "${argv[1]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
+  device=$(cat ~/.marlin_aliases | grep -i "${argv[0]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
 
   {
     printf "select $not_paired_adapter\n\n"
@@ -271,9 +287,14 @@ do
       if [[ ! -z "$1" ]] && [[ ! "$1" =~ ^-+ ]]; then
         argv+=( "$1" )
         shift 1
+
       fi
     ;;
   esac
+
 done
+
+subcommand=${argv[0]}
+argv=( "${argv[@]:1}" )
 
 main
