@@ -16,6 +16,10 @@ _marlin() {
     "status[Show specified devices' information]"
     "pulse-check[Show all devices' information playing sounds in realtime]"
     "log[Show latest autoconnector log in realtime]"
+    "trust[Trust specified devices]"
+    "untrust[Untrust specified devices]"
+    "block[Block specified devices]"
+    "unblock[Unblock specified devices]"
   )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
