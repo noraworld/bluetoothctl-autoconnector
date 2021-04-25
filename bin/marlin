@@ -136,7 +136,7 @@ function operate() {
   adapter=$(echo "${target_extract}" | grep -oE -e "Controller ([0-9A-F]{2}:){5}[0-9A-F]{2}" -e "select ([0-9A-F]{2}:){5}[0-9A-F]{2}" | awk '{print $2}')
 
   if [[ "$subcommand" = "info" ]] || [[ "$subcommand" = "status" ]]; then
-    echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//"
+    echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//" | egrep --color "|no"
   elif [[ "$subcommand" = "remove" ]] || [[ "$subcommand" = "delete" ]]; then
     {
       printf "select ${adapter}\n\n"
