@@ -73,7 +73,7 @@ function main() {
     while [[ "${argv[0]}" != "" ]]; do
       register
       argv=( "${argv[@]:1}" )
-      echo
+      if [[ "${argv[0]}" != "" ]]; then echo; fi
     done
   elif [[ "$subcommand" = "pulse-check" ]]; then
     watch -d -n 1                            \
@@ -99,7 +99,7 @@ function main() {
     while [[ "${argv[0]}" != "" ]]; do
       operate
       argv=( "${argv[@]:1}" )
-      echo
+      if [[ "${argv[0]}" != "" ]]; then echo; fi
     done
   fi
 }
@@ -136,7 +136,11 @@ function operate() {
   adapter=$(echo "${target_extract}" | grep -oE -e "Controller ([0-9A-F]{2}:){5}[0-9A-F]{2}" -e "select ([0-9A-F]{2}:){5}[0-9A-F]{2}" | awk '{print $2}')
 
   if [[ "$subcommand" = "info" ]] || [[ "$subcommand" = "status" ]]; then
-    echo -e "select ${adapter}\n\ninfo ${device}\n\n" | bluetoothctl | grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " | sed "s/^[ \t]*//" | egrep --color "|no"
+    echo -e "select ${adapter}\n\ninfo ${device}\n\n" |
+      bluetoothctl |
+      grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " |
+      sed "s/^[ \t]*//" |
+      egrep -e "|Paired: no" -e "|Trusted: no" -e "|Blocked: yes" -e "|Connected: no" --color
   elif [[ "$subcommand" = "remove" ]] || [[ "$subcommand" = "delete" ]]; then
     {
       printf "select ${adapter}\n\n"
