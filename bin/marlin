@@ -47,11 +47,7 @@ function main() {
     if [[ "${argv[0]}" = "" ]]; then
       list
     elif [[ "${argv[0]}" = "diff" ]]; then
-      if type colordiff 1>/dev/null 2>/dev/null; then
-        colordiff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
-      else
-        diff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
-      fi
+      diff
     else
       echo "Unknown command: ${argv[0]}" >&2
       exit 1
@@ -61,6 +57,8 @@ function main() {
       alias
     elif [[ "${argv[0]}" = "edit" ]]; then
       $EDITOR $ALIASPATH
+    elif [[ "${argv[0]}" = "diff" ]]; then
+      diff
     else
       echo "Unknown command: ${argv[0]}" >&2
       exit 1
@@ -119,6 +117,15 @@ function list() {
 
 function alias() {
   cat $ALIASPATH | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e '/^$/d' | sort
+}
+
+
+function diff() {
+  if type colordiff 1>/dev/null 2>/dev/null; then
+    colordiff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
+  else
+    diff -u <(alias) <(list) | grep -Ev -e "---.*$" -e "\+\+\+.*$" -e "@@.*$"
+  fi
 }
 
 
