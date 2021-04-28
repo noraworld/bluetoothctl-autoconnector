@@ -178,7 +178,7 @@ function register() {
     touch $ALIASPATH
   fi
 
-  device_hit_count=$(cat $ALIASPATH | grep -c -i "${argv[0]}")
+  device_hit_count=$(alias | grep -c -i "${argv[0]}")
 
   if [[ "$device_hit_count" -eq 0 ]]; then
     echo -e "No such device: ${argv[0]}\n" >&2
@@ -207,7 +207,7 @@ function register() {
     exit 2
   fi
 
-  device=$(cat $ALIASPATH | grep -i "${argv[0]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
+  device=$(alias | grep -i "${argv[0]}" | grep -o -E "([0-9A-F]{2}:){5}[0-9A-F]{2}")
 
   {
     printf "select $not_paired_adapter\n\n"
