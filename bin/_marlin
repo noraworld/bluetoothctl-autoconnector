@@ -20,6 +20,7 @@ _marlin() {
     "untrust[Untrust specified devices]"
     "block[Block specified devices]"
     "unblock[Unblock specified devices]"
+    "show[Show all adapters' information]"
   )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
