@@ -25,6 +25,8 @@ INTERVAL_AFTER_CONNECT=3
 INTERVAL_AFTER_REMOVE=3
 INTERVAL_AFTER_ANY_OTHER_COMMAND=3
 
+INTERVAL_AFTER_DAEMON_RESTART=1.5
+
 
 function main() {
   IFS=$'\n'
@@ -83,6 +85,10 @@ function main() {
     list_sink_inputs
   elif [[ "$subcommand" = "log" ]]; then
     less +F $LOGPATH
+  elif [[ "$subcommand" = "destroy" ]]; then
+    destroy
+  elif [[ "$subcommand" = "is-destroyed" ]]; then
+    is_destroyed
   else
     if [[ "${argv[0]}" = "" ]]; then
       echo "Device is missing" >&2
@@ -257,6 +263,105 @@ function paired_devices() {
     printf "select $adapter\n\n"
     printf "paired-devices\n\n"
   } | bluetoothctl | grep "Device " | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'
+}
+
+
+function destroy() {
+  confirm
+
+  echo "Deleting all paired devices..."
+  while [[ "$($PROGNAME list 2>/dev/null)" != "" ]]
+  do
+    $PROGNAME remove all
+    sleep $INTERVAL_AFTER_DAEMON_RESTART
+  done
+  echo
+
+  echo "Reloading daemons configuration..."
+  sudo systemctl daemon-reload
+  sleep $INTERVAL_AFTER_DAEMON_RESTART
+  echo
+
+  echo "Restarting Bluetooth daemon..."
+  sudo systemctl restart bluetooth
+  sleep $INTERVAL_AFTER_DAEMON_RESTART
+  while [[ "$(systemctl is-active bluetooth)" != "active" ]]
+  do
+    echo "Bluetooth daemon has not been restarted yet. Wait a sec..."
+    sleep $INTERVAL_AFTER_DAEMON_RESTART
+  done
+  echo
+
+  echo "Restarting PulseAudio daemon..."
+  systemctl --user restart pulseaudio
+  sleep $INTERVAL_AFTER_DAEMON_RESTART
+  while [[ "$(systemctl --user is-active pulseaudio)" != "active" ]]
+  do
+    echo "PulseAudio daemon has not been restarted yet. Wait a sec..."
+    sleep $INTERVAL_AFTER_DAEMON_RESTART
+  done
+  echo
+
+  echo "Restarting the dummy sound daemon..."
+  systemctl --user restart dummy-sound
+  sleep $INTERVAL_AFTER_DAEMON_RESTART
+  while [[ "$(systemctl --user is-active dummy-sound)" != "active" ]]
+  do
+    echo "The dummy sound daemon has not been restarted yet. Wait a sec..."
+    sleep $INTERVAL_AFTER_DAEMON_RESTART
+  done
+  echo
+
+  echo "Checking success of operation..."
+  echo
+
+  is_destroyed
+}
+
+
+function is_destroyed() {
+  devices="$($PROGNAME list 2>/dev/null)"
+  bluetooth_is_active="$(systemctl is-active bluetooth)"
+  pulseaudio_is_active="$(systemctl --user is-active pulseaudio)"
+  dummy_sound_is_active="$(systemctl --user is-active dummy-sound)"
+
+  if [[ $devices != "" ]]; then
+    echo -e "\033[1;91mAt least one device has not been deleted yet\033[00m" >&2
+  fi
+
+  if [[ $bluetooth_is_active != "active" ]]; then
+    echo -e "\033[1;91mBluetooth daemon is not running\033[00m" >&2
+  fi
+
+  if [[ $pulseaudio_is_active != "active" ]]; then
+    echo -e "\033[1;91mPulseAudio daemon is not running\033[00m" >&2
+  fi
+
+  if [[ $dummy_sound_is_active != "active" ]]; then
+    echo -e "\033[1;91mThe dummy sound daemon is not running\033[00m" >&2
+  fi
+
+  if [[ $devices = "" ]] && [[ $bluetooth_is_active = "active" ]] && [[ $pulseaudio_is_active = "active" ]] && [[ $dummy_sound_is_active = "active" ]]; then
+    echo -e "\033[1;92mDestroyed all devices information and all daemons configuration successfully!\033[00m"
+    echo -e "\033[1;93mIt is highly recommended to restart your computer\033[00m"
+  else
+    exit 2
+  fi
+}
+
+
+function confirm() {
+  echo    "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons"
+  echo -n "Are you sure you want to continue? [y/n]: "
+
+  exec < /dev/tty
+  read confirmation
+  echo
+
+  if [ $confirmation != "y" ] && [ $confirmation != "Y" ] && [ $confirmation != "yes" ] && [ $confirmation != "Yes" ] && [ $confirmation != "YES" ]; then
+    echo "Canceled"
+    exit 1
+  fi
 }
 
 

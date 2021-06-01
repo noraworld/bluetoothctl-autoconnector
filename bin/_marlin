@@ -22,6 +22,8 @@ _marlin() {
     "block[Block specified devices]"
     "unblock[Unblock specified devices]"
     "show[Show all adapters' information]"
+    "destroy[Delete all devices paired with adapters, and restart Bluetooth and PulseAudio daemons]"
+    "is-destroyed[Check if all devices information has been deleted, and Bluetooth and PulseAudio daemons are active]"
   )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
