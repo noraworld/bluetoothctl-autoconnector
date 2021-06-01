@@ -77,19 +77,10 @@ function main() {
       argv=( "${argv[@]:1}" )
       if [[ "${argv[0]}" != "" ]]; then echo; fi
     done
-  elif [[ "$subcommand" = "pulse-check" ]]; then
-    watch -d -n 1                            \
-      "pacmd list-sink-inputs | grep         \
-      -e \"sink input(s) available.\"        \
-      -e \"index: [0-9]*\"                   \
-      -e \"state: [A-Z]*\"                   \
-      -e \"sink: [0-9]* <.*>\"               \
-      -e \"current latency: [0-9|\.]* ms\"   \
-      -e \"requested latency: [0-9|\.]* ms\" \
-      -e \"sample spec: \"                   \
-      -e \"properties:\"                     \
-      -e \"media\.role = \"                  \
-      -e \"media\.name = \""
+  elif [[ "$subcommand" = "pulse" ]]; then
+    pulse
+  elif [[ "$subcommand" = "list-sink-inputs" ]]; then
+    list_sink_inputs
   elif [[ "$subcommand" = "log" ]]; then
     less +F $LOGPATH
   else
@@ -266,6 +257,66 @@ function paired_devices() {
     printf "select $adapter\n\n"
     printf "paired-devices\n\n"
   } | bluetoothctl | grep "Device " | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'
+}
+
+
+function pulse() {
+  watch -d -n 1 -t "$PROGNAME list-sink-inputs"
+}
+
+
+function list_sink_inputs() {
+  # terminal lines
+  lines="$(tput lines)"
+
+  pacmd="$(pacmd list-sink-inputs)"
+
+  # show full output
+  if [[ $lines -ge $(echo "${pacmd}" | wc -l) ]]; then
+    echo "${pacmd}"
+    exit 0
+  fi
+
+  pacmd_short="$(echo "${pacmd}" | grep             \
+               -e "sink input(s) available."        \
+               -e "index: [0-9]*"                   \
+               -e "state: [A-Z]*"                   \
+               -e "sink: [0-9]* <.*>"               \
+               -e "current latency: [0-9|\.]* ms"   \
+               -e "requested latency: [0-9|\.]* ms" \
+               -e "sample spec: "                   \
+               -e "properties:"                     \
+               -e "media\.role = "                  \
+               -e "media\.name = ")"
+
+  # show short output
+  if [[ $lines -ge $(echo "${pacmd_short}" | wc -l) ]]; then
+    echo "${pacmd_short}"
+    exit 0
+  fi
+
+  pacmd_short2="$(echo "${pacmd_short}" | grep       \
+                -e "sink input(s) available."        \
+                -e "index: [0-9]*"                   \
+                -e "current latency: [0-9|\.]* ms"   \
+                -e "requested latency: [0-9|\.]* ms" \
+                -e "sample spec: "                   \
+                -e "media\.role = "                  \
+                -e "media\.name = ")"
+
+  # show much shorter output
+  if [[ $lines -ge $(echo "${pacmd_short2}" | wc -l) ]]; then
+    echo "${pacmd_short2}"
+    exit 0
+  fi
+
+  pacmd_short3="$(echo "${pacmd_short2}" | grep    \
+                -e "index: [0-9]*"                 \
+                -e "current latency: [0-9|\.]* ms" \
+                -e "media\.role = "                \
+                -e "media\.name = ")"
+
+  echo "${pacmd_short3}"
 }
 
 
