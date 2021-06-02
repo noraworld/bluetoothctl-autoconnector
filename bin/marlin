@@ -17,7 +17,7 @@ INTERVAL_AFTER_POWER_ON=3
 INTERVAL_AFTER_PAIRED_DEVICES=2
 INTERVAL_AFTER_SCAN_ON=5
 INTERVAL_AFTER_PAIR=5
-INTERVAL_AFTER_YES=5
+INTERVAL_AFTER_AGENT_OFF=2
 INTERVAL_AFTER_TRUST=2
 INTERVAL_AFTER_SCAN_OFF=2
 INTERVAL_AFTER_CONNECT=3
@@ -236,6 +236,8 @@ function register() {
     sleep $INTERVAL_AFTER_POWER_ON
     printf "paired-devices\n\n"
     sleep $INTERVAL_AFTER_PAIRED_DEVICES
+    printf "agent off\n\n"
+    sleep $INTERVAL_AFTER_AGENT_OFF
     printf "scan on\n\n"
     sleep $INTERVAL_AFTER_SCAN_ON
 
@@ -243,8 +245,6 @@ function register() {
     do
       printf "pair $device\n\n"
       sleep $INTERVAL_AFTER_PAIR
-      printf "yes\n\n"
-      sleep $INTERVAL_AFTER_YES
     done
 
     printf "trust $device\n\n"
