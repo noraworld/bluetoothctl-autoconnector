@@ -351,7 +351,7 @@ function is_destroyed() {
 
 
 function confirm() {
-  echo    "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons"
+  echo    "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons to reflect changes of settings"
   echo -n "Are you sure you want to continue? [y/n]: "
 
   exec < /dev/tty
