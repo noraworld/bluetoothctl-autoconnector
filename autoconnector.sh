@@ -15,16 +15,19 @@ function usage() {
   echo -e "  -f FILE, --file FILE"
   echo -e "    Attempt to connect only specific devices written in mapping list file"
   echo -e "    For details on how to write a mapping list file, see list.sample"
-  echo -e "  -i, --ignore-sound"
+  echo -e "  --ignore-sound"
   echo -e "    Ignore devices playing sounds"
   echo -e "    When some devices that have already connected to Bluetooth adapters are playing sounds,"
   echo -e "    bluetoothctl attempts to connect other device, and then the sounds breaks up temporarily"
   echo -e "    To avoid this, this script does not connect any device by default"
   echo -e "    when some devices that have already connected to Bluetooth adapters are playing sounds"
+  echo -e "  --ignore-ssh"
+  echo -e "    Ignore SSH connection"
 }
 
 is_mapping_file=false
 ignore_sound=false
+ignore_ssh=false
 
 for opt in "$@"
 do
@@ -33,8 +36,12 @@ do
       usage
       exit 0
     ;;
-    '-i' | '--ignore-sound' )
+    '--ignore-sound' )
       ignore_sound=true
+      shift 1
+    ;;
+    '--ignore-ssh' )
+      ignore_ssh=true
       shift 1
     ;;
     '-f' | '--file' )
@@ -113,19 +120,20 @@ function is_logged_in() {
   fi
 }
 
-if [[ $(is_logged_in) = "true" ]]; then
-  echo -e "Error: Some users now logged in" >&2
+if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
+  echo -e "Error: Some devices now playing sounds" >&2
+  echo -e "       Specify option --ignore-sound to ignore devices playing sounds" >&2
+  exit 2
+fi
+
+if ! $ignore_ssh && [[ $(is_logged_in) = "true" ]]; then
+  echo -e "Error: Some users now logged in via SSH" >&2
+  echo -e "       Specify option --ignore-ssh to ignore SSH connection" >&2
   exit 2
 fi
 
 # connects devices
 if ! $is_mapping_file; then # attempts to connect all devices
-  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
-    echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "Specify option -i to ignore devices playing sounds" >&2
-    exit 2
-  fi
-
   bluetoothctl -- list | while read line
   do
     adapter=`echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'`
@@ -146,12 +154,6 @@ if ! $is_mapping_file; then # attempts to connect all devices
     done
   done
 else # attempts to connect specific devices written in mapping list
-  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
-    echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "Specify option -i to ignore devices playing sounds" >&2
-    exit 2
-  fi
-
   while read line
   do
     # skip a comment line and a blank line
