@@ -85,10 +85,10 @@ function main() {
     list_sink_inputs
   elif [[ "$subcommand" = "log" ]]; then
     less +F $LOGPATH
-  elif [[ "$subcommand" = "destroy" ]]; then
-    destroy
-  elif [[ "$subcommand" = "is-destroyed" ]]; then
-    is_destroyed
+  elif [[ "$subcommand" = "refresh" ]]; then
+    refresh
+  elif [[ "$subcommand" = "is-refreshed" ]]; then
+    is_refreshed
   else
     if [[ "${argv[0]}" = "" ]]; then
       echo "Device is missing" >&2
@@ -266,7 +266,7 @@ function paired_devices() {
 }
 
 
-function destroy() {
+function refresh() {
   confirm
 
   echo "Deleting all paired devices..."
@@ -315,11 +315,11 @@ function destroy() {
   echo "Checking success of operation..."
   echo
 
-  is_destroyed
+  is_refreshed
 }
 
 
-function is_destroyed() {
+function is_refreshed() {
   devices="$($PROGNAME list 2>/dev/null)"
   bluetooth_is_active="$(systemctl is-active bluetooth)"
   pulseaudio_is_active="$(systemctl --user is-active pulseaudio)"
@@ -342,7 +342,7 @@ function is_destroyed() {
   fi
 
   if [[ $devices = "" ]] && [[ $bluetooth_is_active = "active" ]] && [[ $pulseaudio_is_active = "active" ]] && [[ $dummy_sound_is_active = "active" ]]; then
-    echo -e "\033[1;92mDestroyed all devices information and all daemons configuration successfully!\033[00m"
+    echo -e "\033[1;92mDeleted all devices information and restart all daemons successfully!\033[00m"
     echo -e "\033[1;93mIt is highly recommended to restart your computer\033[00m"
   else
     exit 2
