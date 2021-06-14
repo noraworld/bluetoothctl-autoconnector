@@ -103,6 +103,21 @@ function is_playing() {
   pactl list sink-inputs | grep -e "Corked: " -e "media\.name = " | tr -d '\n' | grep -co "Corked: no\s*media\.name = \"Loopback from"
 }
 
+# checks whether some users are logged in now via SSH
+# if yes, skip connecting via cron because the machine response is very slow while operating via SSH
+function is_logged_in() {
+  if [[ $(w -hs | awk '{ print $3 }' | grep -Ev '^-$') != "" ]]; then
+    echo true
+  else
+    echo false
+  fi
+}
+
+if [[ $(is_logged_in) = "true" ]]; then
+  echo -e "Error: Some users now logged in" >&2
+  exit 2
+fi
+
 # connects devices
 if ! $is_mapping_file; then # attempts to connect all devices
   if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
