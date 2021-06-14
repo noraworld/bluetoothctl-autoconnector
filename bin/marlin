@@ -85,6 +85,8 @@ function main() {
     list_sink_inputs
   elif [[ "$subcommand" = "log" ]]; then
     less +F $LOGPATH
+  elif [[ "$subcommand" = "health" ]]; then
+    health
   elif [[ "$subcommand" = "refresh" ]]; then
     refresh
   elif [[ "$subcommand" = "is-refreshed" ]]; then
@@ -263,6 +265,15 @@ function paired_devices() {
     printf "select $adapter\n\n"
     printf "paired-devices\n\n"
   } | bluetoothctl | grep "Device " | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'
+}
+
+
+function health() {
+  systemctl status bluetooth
+  echo
+  systemctl --user status pulseaudio
+  echo
+  systemctl --user status dummy-sound
 }
 
 

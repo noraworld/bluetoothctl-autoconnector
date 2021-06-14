@@ -22,6 +22,7 @@ _marlin() {
     "block[Block specified devices]"
     "unblock[Unblock specified devices]"
     "show[Show all adapters' information]"
+    "health[Show if it works properly]"
     "refresh[Delete all devices paired with adapters, and restart Bluetooth and PulseAudio daemons]"
     "is-refreshed[Check if all devices information has been deleted, and Bluetooth and PulseAudio daemons are active]"
   )
