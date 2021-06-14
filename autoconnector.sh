@@ -108,6 +108,7 @@ function is_playing() {
 # checks whether some users are logged in now via SSH
 # if yes, skip connecting via cron because the machine response is very slow while operating via SSH
 function is_logged_in() {
+  # https://www.golinuxcloud.com/list-check-active-ssh-connections-linux/
   if [[ $(w -hs | awk '{ print $3 }' | grep -Ev '^-$') != "" ]]; then
     echo true
   else
