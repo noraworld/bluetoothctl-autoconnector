@@ -34,18 +34,6 @@ function main() {
   adapters=()
   adapters_cmd=()
 
-  while read line
-  do
-    adapter=$(echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/')
-    adapters=(${adapters[@]} "$adapter")
-    adapters_cmd=(${adapters_cmd[@]} "select $adapter\n\npaired-devices\n\n")
-    adapters_info=(${adapters_info[@]} "select $adapter\n\nshow\n\n")
-  done <<< "$(bluetoothctl -- list)"
-
-  if [[ "${argv[0]}" = "all" ]] && [[ "${argv[1]}" = "" ]]; then
-    argv=( $(list | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g") )
-  fi
-
   if [[ "$subcommand" = "" ]] || [[ "$subcommand" = "list" ]]; then
     if [[ "${argv[0]}" = "" ]]; then
       list
@@ -106,7 +94,28 @@ function main() {
 }
 
 
+function get_adapters() {
+  # this function works only one time with each command execution
+  if [[ "${adapters[@]}" != "" ]]; then
+    return
+  fi
+
+  while read line
+  do
+    adapter=$(echo $line | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/')
+    adapters=(${adapters[@]} "$adapter")
+    adapters_cmd=(${adapters_cmd[@]} "select $adapter\n\npaired-devices\n\n")
+    adapters_info=(${adapters_info[@]} "select $adapter\n\nshow\n\n")
+  done <<< "$(bluetoothctl -- list)"
+
+  if [[ "${argv[0]}" = "all" ]] && [[ "${argv[1]}" = "" ]]; then
+    argv=( $(list | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g") )
+  fi
+}
+
+
 function list() {
+  get_adapters
   paired_devices=$(echo -e ${adapters_cmd[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort)
 
   if [[ "${paired_devices}" != "" ]]; then
@@ -132,6 +141,8 @@ function diff() {
 
 
 function show() {
+  get_adapters
+
   echo -e ${adapters_info[@]} |
     bluetoothctl |
     sed "s/^[ \t]*//" |
@@ -145,6 +156,7 @@ function show() {
 
 
 function operate() {
+  get_adapters
   target_extract=$(echo -e "${adapters_cmd[@]}" | bluetoothctl | grep -E "^Device " -B 2 | grep -i -E "^Device ([0-9A-F]{2}:){5}[0-9A-F]{2} ${argv[0]}" -B 2)
 
   if [[ "${target_extract}" = "" ]]; then
