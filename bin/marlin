@@ -141,6 +141,8 @@ function diff() {
 
 
 function show() {
+  require ruby
+
   get_adapters
 
   echo -e ${adapters_info[@]} |
@@ -445,6 +447,20 @@ function list_sink_inputs() {
                 -e "media\.name = ")"
 
   echo "${pacmd_short3}"
+}
+
+
+function require() {
+  if [ "$1" = "" ]; then
+    echo "Fatal: The function "require" requires at least one argument" >&2
+    exit 2
+  fi
+
+  if ! type $1 1>/dev/null 2>/dev/null; then
+    echo "\"$1\" is not installed on this computer" >&2
+    echo "This operation requires \"$1\"" >&2
+    exit 2
+  fi
 }
 
 
