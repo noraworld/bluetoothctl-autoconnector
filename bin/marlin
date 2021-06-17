@@ -34,63 +34,84 @@ function main() {
   adapters=()
   adapters_cmd=()
 
-  if [[ "$subcommand" = "" ]] || [[ "$subcommand" = "list" ]]; then
-    if [[ "${argv[0]}" = "" ]]; then
-      list
-    elif [[ "${argv[0]}" = "diff" ]]; then
-      diff
-    else
-      echo "Unknown command: ${argv[0]}" >&2
-      exit 1
-    fi
-  elif [[ "$subcommand" = "alias" ]]; then
-    if [[ "${argv[0]}" = "" ]]; then
-      alias
-    elif [[ "${argv[0]}" = "edit" ]]; then
-      $EDITOR $ALIASPATH
-    elif [[ "${argv[0]}" = "diff" ]]; then
-      diff
-    else
-      echo "Unknown command: ${argv[0]}" >&2
-      exit 1
-    fi
-  elif [[ "$subcommand" = "show" ]]; then
-    show
-  elif [[ "$subcommand" = "register" ]]; then
-    if [[ "${argv[0]}" = "" ]]; then
-      echo "Device is missing" >&2
-      exit 1
-    fi
+  case "$subcommand" in
+    "" | "list")
+      case "${argv[0]}" in
+        "")
+          list
+        ;;
+        "diff")
+          diff
+        ;;
+        *)
+          echo "Unknown command: ${argv[0]}" >&2
+          exit 1
+        ;;
+      esac
+    ;;
+    "alias")
+      case "${argv[0]}" in
+        "")
+          alias
+        ;;
+        "edit")
+          $EDITOR $ALIASPATH
+        ;;
+        "diff")
+          diff
+        ;;
+        *)
+          echo "Unknown command: ${argv[0]}" >&2
+          exit 1
+        ;;
+      esac
+    ;;
+    "show")
+      show
+    ;;
+    "register")
+      if [[ "${argv[0]}" = "" ]]; then
+        echo "Device is missing" >&2
+        exit 1
+      fi
 
-    while [[ "${argv[0]}" != "" ]]; do
-      register
-      argv=( "${argv[@]:1}" )
-      if [[ "${argv[0]}" != "" ]]; then echo; fi
-    done
-  elif [[ "$subcommand" = "pulse" ]]; then
-    pulse
-  elif [[ "$subcommand" = "list-sink-inputs" ]]; then
-    list_sink_inputs
-  elif [[ "$subcommand" = "log" ]]; then
-    less +F $LOGPATH
-  elif [[ "$subcommand" = "health" ]]; then
-    health
-  elif [[ "$subcommand" = "refresh" ]]; then
-    refresh
-  elif [[ "$subcommand" = "is-refreshed" ]]; then
-    is_refreshed
-  else
-    if [[ "${argv[0]}" = "" ]]; then
-      echo "Device is missing" >&2
-      exit 1
-    fi
+      while [[ "${argv[0]}" != "" ]]; do
+        register
+        argv=( "${argv[@]:1}" )
+        if [[ "${argv[0]}" != "" ]]; then echo; fi
+      done
+    ;;
+    "pulse")
+      pulse
+    ;;
+    "list-sink-inputs")
+      list_sink_inputs
+    ;;
+    "log")
+      less +F $LOGPATH
+    ;;
+    "health")
+      health
+    ;;
+    "refresh")
+      refresh
+    ;;
+    "is-refreshed")
+      is_refreshed
+    ;;
+    *)
+      if [[ "${argv[0]}" = "" ]]; then
+        echo "Device is missing" >&2
+        exit 1
+      fi
 
-    while [[ "${argv[0]}" != "" ]]; do
-      operate
-      argv=( "${argv[@]:1}" )
-      if [[ "${argv[0]}" != "" ]]; then echo; fi
-    done
-  fi
+      while [[ "${argv[0]}" != "" ]]; do
+        operate
+        argv=( "${argv[@]:1}" )
+        if [[ "${argv[0]}" != "" ]]; then echo; fi
+      done
+    ;;
+  esac
 }
 
 
