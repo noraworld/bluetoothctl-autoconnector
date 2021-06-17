@@ -8,17 +8,7 @@ ignore_ssh=false
 
 
 function main() {
-  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
-    echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "       Specify option --ignore-sound to ignore devices playing sounds" >&2
-    exit 2
-  fi
-
-  if ! $ignore_ssh && [[ $(is_logged_in) = "true" ]]; then
-    echo -e "Error: Some users now logged in via SSH" >&2
-    echo -e "       Specify option --ignore-ssh to ignore SSH connection" >&2
-    exit 2
-  fi
+  check
 
   # connects devices
   if ! $is_mapping_file; then # attempts to connect all devices
@@ -113,6 +103,27 @@ function is_logged_in() {
     echo true
   else
     echo false
+  fi
+}
+
+
+function check() {
+  abort_flag=false
+
+  if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
+    echo -e "Error: Some devices now playing sounds" >&2
+    echo -e "       Specify option --ignore-sound to ignore devices playing sounds" >&2
+    abort_flag=true
+  fi
+
+  if ! $ignore_ssh && [[ $(is_logged_in) = "true" ]]; then
+    echo -e "Error: Some users now logged in via SSH" >&2
+    echo -e "       Specify option --ignore-ssh to ignore SSH connection" >&2
+    abort_flag=true
+  fi
+
+  if $abort_flag; then
+    exit 2
   fi
 }
 
