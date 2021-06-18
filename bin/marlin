@@ -269,14 +269,20 @@ function register() {
   {
     printf "select $not_paired_adapter\n\n"
     sleep $INTERVAL_AFTER_SELECT
-    printf "power on\n\n"
-    sleep $INTERVAL_AFTER_POWER_ON
+
+    while [[ "$(powered)" != "yes" ]]
+    do
+      printf "power on\n\n"
+      sleep $INTERVAL_AFTER_POWER_ON
+    done
+
     printf "paired-devices\n\n"
     sleep $INTERVAL_AFTER_PAIRED_DEVICES
+
     printf "scan on\n\n"
     sleep $INTERVAL_AFTER_SCAN_ON
 
-    while [[ "$(paired_devices)" = "" ]]
+    while [[ "$(paired_devices)" != "$device" ]]
     do
       printf "pair $device\n\n"
       sleep $INTERVAL_AFTER_PAIR
@@ -284,12 +290,21 @@ function register() {
       sleep $INTERVAL_AFTER_YES
     done
 
-    printf "trust $device\n\n"
-    sleep $INTERVAL_AFTER_TRUST
+    while [[ "$(trusted)" != "yes" ]]
+    do
+      printf "trust $device\n\n"
+      sleep $INTERVAL_AFTER_TRUST
+    done
+
     printf "scan off\n\n"
     sleep $INTERVAL_AFTER_SCAN_OFF
-    printf "connect $device\n\n"
-    sleep $INTERVAL_AFTER_CONNECT
+
+    while [[ "$(connected)" != "yes" ]]
+    do
+      printf "connect $device\n\n"
+      sleep $INTERVAL_AFTER_CONNECT
+    done
+
     printf "exit\n\n"
   } | bluetoothctl
 }
@@ -300,6 +315,30 @@ function paired_devices() {
     printf "select $adapter\n\n"
     printf "paired-devices\n\n"
   } | bluetoothctl | grep "Device " | sed -r 's/^.*(([0-9A-F]{2}:){5}[0-9A-F]{2}).*$/\1/'
+}
+
+
+function powered() {
+  {
+    printf "select $not_paired_adapter\n\n"
+    printf "show\n\n"
+  } | bluetoothctl | grep "Powered: " | sed -r 's/^.*(yes|no).*$/\1/'
+}
+
+
+function trusted() {
+  {
+    printf "select $not_paired_adapter\n\n"
+    printf "info $device\n\n"
+  } | bluetoothctl | grep "Trusted: " | sed -r 's/^.*(yes|no).*$/\1/'
+}
+
+
+function connected() {
+  {
+    printf "select $not_paired_adapter\n\n"
+    printf "info $device\n\n"
+  } | bluetoothctl | grep "Connected: " | sed -r 's/^.*(yes|no).*$/\1/'
 }
 
 
