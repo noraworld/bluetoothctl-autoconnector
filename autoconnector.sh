@@ -90,8 +90,11 @@ function is_playing() {
 
   # count the number of devices that play sound except for dummy sound
   # Both pacmd or pactl are fine
-  # pacmd list-sink-inputs | grep -c "state: RUNNING"
-  pactl list sink-inputs | grep -e "Corked: " -e "media\.name = " | tr -d '\n' | grep -co "Corked: no\s*media\.name = \"Loopback from"
+  # pacmd list-sink-inputs | grep -c "state: RUNNING" ...
+  pactl list sink-inputs                                                            |
+    grep -e "Corked: " -e "media\.role = " -e "media\.name = "                      |
+    tr -d '\n'                                                                      |
+    grep -co "Corked: no\s*media\.role = \"music\"\s*media\.name = \"Loopback from"
 }
 
 
@@ -111,8 +114,8 @@ function check() {
   abort_flag=false
 
   if ! $ignore_sound && [[ $(is_playing) -gt 0 ]]; then
-    echo -e "Error: Some devices now playing sounds" >&2
-    echo -e "       Specify option --ignore-sound to ignore devices playing sounds" >&2
+    echo -e "Error: Some devices now playing musics" >&2
+    echo -e "       Specify option --ignore-sound to ignore devices playing musics" >&2
     abort_flag=true
   fi
 
