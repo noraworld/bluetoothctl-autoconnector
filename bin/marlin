@@ -343,7 +343,7 @@ function paired_devices() {
 
 function powered() {
   {
-    printf "select $not_paired_adapter\n\n"
+    printf "select $not_paired_adapter\n\n" # TODO: may need to change $(appropriate_adapter)
     printf "show\n\n"
   } | bluetoothctl | grep "Powered: " | sed -r 's/^.*(yes|no).*$/\1/'
 }
@@ -351,7 +351,7 @@ function powered() {
 
 function trusted() {
   {
-    printf "select $not_paired_adapter\n\n"
+    printf "select $not_paired_adapter\n\n" # TODO: may need to change $(appropriate_adapter)
     printf "info $device\n\n"
   } | bluetoothctl | grep "Trusted: " | sed -r 's/^.*(yes|no).*$/\1/'
 }
