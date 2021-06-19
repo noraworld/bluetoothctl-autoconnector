@@ -471,7 +471,9 @@ function is_refreshed() {
 
 
 function confirm() {
-  echo    "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons to reflect changes of settings"
+  echo -e "\033[1;92mTIPS: It is highly recommended to execute this operation both before and after changing settings of Bluetooth and PulseAudio\033[00m"
+  echo
+  echo -e "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons to reflect changes of settings"
   echo -n "Are you sure you want to continue? [y/n]: "
 
   exec < /dev/tty
