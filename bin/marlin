@@ -193,40 +193,63 @@ function operate() {
   device=$(echo "${target_extract}" | grep "Device " | awk '{print $2}')
   adapter=$(echo "${target_extract}" | grep -oE -e "Controller ([0-9A-F]{2}:){5}[0-9A-F]{2}" -e "select ([0-9A-F]{2}:){5}[0-9A-F]{2}" | awk '{print $2}')
 
-  if [[ "$subcommand" = "info" ]] || [[ "$subcommand" = "status" ]]; then
-    echo -e "select ${adapter}\n\ninfo ${device}\n\n" |
-      bluetoothctl |
-      grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " |
-      sed "s/^[ \t]*//" |
-      egrep -e "|Paired: no" -e "|Trusted: no" -e "|Blocked: yes" -e "|Connected: no" --color
-  elif [[ "$subcommand" = "remove" ]] || [[ "$subcommand" = "delete" ]]; then
-    {
-      printf "select ${adapter}\n\n"
-      sleep $INTERVAL_AFTER_SELECT
-      printf "power on\n\n"
-      sleep $INTERVAL_AFTER_POWER_ON
-      printf "paired-devices\n\n"
-      sleep $INTERVAL_AFTER_PAIRED_DEVICES
+  case "$subcommand" in
+    "info" | "status")
+      echo -e "select ${adapter}\n\ninfo ${device}\n\n" |
+        bluetoothctl |
+        grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " |
+        sed "s/^[ \t]*//" |
+        egrep -e "|Paired: no" -e "|Trusted: no" -e "|Blocked: yes" -e "|Connected: no" --color
+    ;;
+    "remove" | "delete")
+      {
+        printf "select ${adapter}\n\n"
+        sleep $INTERVAL_AFTER_SELECT
+        printf "power on\n\n"
+        sleep $INTERVAL_AFTER_POWER_ON
 
-      while [[ "$(paired_devices)" != "" ]]
-      do
-        printf "remove ${device}\n\n"
-        sleep $INTERVAL_AFTER_REMOVE
-      done
+        printf "paired-devices\n\n"
+        sleep $INTERVAL_AFTER_PAIRED_DEVICES
 
-      printf "exit\n\n"
-    } | bluetoothctl
-  else
-    {
-      printf "select ${adapter}\n\n"
-      sleep $INTERVAL_AFTER_SELECT
-      printf "power on\n\n"
-      sleep $INTERVAL_AFTER_POWER_ON
-      printf "$subcommand ${device}\n\n"
-      sleep $INTERVAL_AFTER_ANY_OTHER_COMMAND
-      printf "exit\n\n"
-    } | bluetoothctl
-  fi
+        while [[ "$(paired_devices)" != "" ]]
+        do
+          printf "remove ${device}\n\n"
+          sleep $INTERVAL_AFTER_REMOVE
+        done
+
+        printf "exit\n\n"
+      } | bluetoothctl
+    ;;
+    "connect")
+      {
+        printf "select ${adapter}\n\n"
+        sleep $INTERVAL_AFTER_SELECT
+        printf "power on\n\n"
+        sleep $INTERVAL_AFTER_POWER_ON
+
+        while [[ "$(connected)" != "yes" ]]
+        do
+          printf "connect ${device}\n\n"
+          sleep $INTERVAL_AFTER_CONNECT
+        done
+
+        printf "exit\n\n"
+      } | bluetoothctl
+    ;;
+    *)
+      {
+        printf "select ${adapter}\n\n"
+        sleep $INTERVAL_AFTER_SELECT
+        printf "power on\n\n"
+        sleep $INTERVAL_AFTER_POWER_ON
+
+        printf "$subcommand ${device}\n\n"
+        sleep $INTERVAL_AFTER_ANY_OTHER_COMMAND
+
+        printf "exit\n\n"
+      } | bluetoothctl
+    ;;
+  esac
 }
 
 
@@ -336,9 +359,21 @@ function trusted() {
 
 function connected() {
   {
-    printf "select $not_paired_adapter\n\n"
+    printf "select $(appropriate_adapter)\n\n"
     printf "info $device\n\n"
   } | bluetoothctl | grep "Connected: " | sed -r 's/^.*(yes|no).*$/\1/'
+}
+
+
+function appropriate_adapter() {
+  if [ "$not_paired_adapter" != "" ]; then
+    echo "$not_paired_adapter"
+  elif [ "$adapter" != "" ]; then
+    echo "$adapter"
+  else
+    echo "Fatal: The appropriate adapter not found" >&2
+    exit 2
+  fi
 }
 
 
