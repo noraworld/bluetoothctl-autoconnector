@@ -25,6 +25,7 @@ _marlin() {
     "health[Show if it works properly]"
     "refresh[Delete all devices paired with adapters, and restart Bluetooth and PulseAudio daemons]"
     "is-refreshed[Check if all devices information has been deleted, and Bluetooth and PulseAudio daemons are active]"
+    "play[Play a sample audio to check whether the sound is clearly hearable]"
   )
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342

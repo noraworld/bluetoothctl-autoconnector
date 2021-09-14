@@ -99,6 +99,9 @@ function main() {
     "is-refreshed")
       is_refreshed
     ;;
+    "play")
+      play
+    ;;
     *)
       if [[ "${argv[0]}" = "" ]]; then
         echo "Device is missing" >&2
@@ -467,6 +470,13 @@ function is_refreshed() {
   else
     exit 2
   fi
+}
+
+
+function play() {
+  echo "A sample audio will be played in 3 seconds. Make sure your headphone’s volume is not too large!"
+  sleep 3
+  aplay /usr/share/sounds/alsa/Rear_Center.wav
 }
 
 
