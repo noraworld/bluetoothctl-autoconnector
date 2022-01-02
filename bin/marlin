@@ -10,7 +10,6 @@ PROGNAME=$(basename $0)
 FULLPATH=$(dirname $(realpath $0))
 LOGPATH=$FULLPATH/../log/latest.log
 ALIASPATH=~/.marlin_aliases
-
 SAMPLE_SOUND=/usr/share/sounds/alsa/Rear_Center.wav
 
 INTERVAL_AFTER_SELECT=1
@@ -35,6 +34,8 @@ function main() {
 
   adapters=()
   adapters_cmd=()
+
+  initialize_options
 
   case "$subcommand" in
     "" | "list")
@@ -236,6 +237,11 @@ function operate() {
         do
           printf "connect ${device}\n\n"
           sleep $INTERVAL_AFTER_CONNECT
+
+          let retry_count--
+          if [ "$retry_count" -le 0 ]; then
+            break
+          fi
         done
 
         printf "exit\n\n"
@@ -559,6 +565,13 @@ function list_sink_inputs() {
 }
 
 
+function initialize_options() {
+  if [ -z "$retry_count" ]; then
+    retry_count=9223372036854775807
+  fi
+}
+
+
 function require() {
   if [ "$1" = "" ]; then
     echo "Fatal: The function "require" requires at least one argument" >&2
@@ -570,6 +583,12 @@ function require() {
     echo "This operation requires \"$1\"" >&2
     exit 2
   fi
+}
+
+
+# cf. https://ytyaru.hatenablog.com/entry/2020/02/02/111111
+function is_integer() {
+  test 0 -eq $1 > /dev/null 2>&1 || expr $1 + 0 > /dev/null 2>&1
 }
 
 
@@ -624,6 +643,12 @@ function usage() {
   echo -e "Options:"
   echo -e "	-h, --help"
   echo -e "		Show this help message and exit"
+  echo
+  echo -e "	-r NUMBER, --retry=NUMBER"
+  echo -e "		Retry only the specified number of times"
+  echo -e "		when executing the command that tries to be continued until succeeding"
+  echo -e "		If this option is not set, it tries to retry infinitely as long as not succeeding"
+  echo -e "		NOTE: This option is implemented only with \"$PROGNAME connect\" for now"
 }
 
 
@@ -633,6 +658,22 @@ do
     '-h' | '--help' )
       usage
       exit 0
+    ;;
+    '-r' | '--retry' | --retry=* )
+      if [[ "$1" =~ ^--retry= ]]; then
+        retry_count=$(echo $1 | sed -e 's/^--retry=//')
+      elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+        echo "$PROGNAME: \"$1\" requires an argument" 1>&2
+        exit 1
+      else
+        retry_count="$2"
+        shift 2
+      fi
+
+      if ! $(is_integer $retry_count && echo true || echo false); then
+        echo "\"$retry_count\" is not a number" 1>&2
+        exit 1
+      fi
     ;;
     '--' | '-' )
       shift 1
