@@ -11,6 +11,8 @@ FULLPATH=$(dirname $(realpath $0))
 LOGPATH=$FULLPATH/../log/latest.log
 ALIASPATH=~/.marlin_aliases
 
+SAMPLE_SOUND=/usr/share/sounds/alsa/Rear_Center.wav
+
 INTERVAL_AFTER_SELECT=1
 INTERVAL_AFTER_POWER_ON=3
 
@@ -476,7 +478,7 @@ function is_refreshed() {
 function play() {
   echo "A sample audio will be played in 3 seconds. Make sure your headphone’s volume is not too large!"
   sleep 3
-  aplay /usr/share/sounds/alsa/Rear_Center.wav
+  aplay $SAMPLE_SOUND
 }
 
 
