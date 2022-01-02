@@ -151,7 +151,7 @@ function list() {
 
 
 function alias() {
-  cat $ALIASPATH | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e '/^$/d' | sort
+  cat $ALIASPATH | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e 's/^[ \t]*//' | sed -e '/^$/d' | sort
 }
 
 
