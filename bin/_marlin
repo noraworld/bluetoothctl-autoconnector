@@ -30,7 +30,7 @@ _marlin() {
 
   # https://stackoverflow.com/questions/17318913/make-zsh-complete-arguments-from-a-file#answer-17320342
   local -a devices
-  devices=( all ${(uf)"$(cat ~/.marlin_aliases | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e '/^$/d' | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g")"} )
+  devices=( all ${(uf)"$(cat ~/.marlin_aliases | awk '{ sub("#.*$", ""); print $0; }' | sed -e 's/[ \t]*$//' | sed -e 's/^[ \t]*//' | sed -e '/^$/d' | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g")"} )
 
   _arguments '1: :->operation' '*: :->device'
 
