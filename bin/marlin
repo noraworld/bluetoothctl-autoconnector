@@ -530,6 +530,7 @@ function list_sink_inputs() {
                -e "current latency: [0-9|\.]* ms"   \
                -e "requested latency: [0-9|\.]* ms" \
                -e "sample spec: "                   \
+               -e "resample method: "               \
                -e "properties:"                     \
                -e "media\.role = "                  \
                -e "media\.name = ")"
