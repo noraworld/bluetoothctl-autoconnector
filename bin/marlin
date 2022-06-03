@@ -22,6 +22,7 @@ INTERVAL_AFTER_YES=5
 INTERVAL_AFTER_TRUST=2
 INTERVAL_AFTER_SCAN_OFF=2
 INTERVAL_AFTER_CONNECT=3
+INTERVAL_AFTER_DISCONNECT=3
 
 INTERVAL_AFTER_REMOVE=3
 INTERVAL_AFTER_ANY_OTHER_COMMAND=3
@@ -232,6 +233,38 @@ function operate() {
         sleep $INTERVAL_AFTER_SELECT
         printf "power on\n\n"
         sleep $INTERVAL_AFTER_POWER_ON
+
+        while [[ "$(connected)" != "yes" ]]
+        do
+          printf "connect ${device}\n\n"
+          sleep $INTERVAL_AFTER_CONNECT
+
+          let retry_count--
+          if [ "$retry_count" -le 0 ]; then
+            break
+          fi
+        done
+
+        printf "exit\n\n"
+      } | bluetoothctl
+    ;;
+    "reconnect")
+      {
+        printf "select ${adapter}\n\n"
+        sleep $INTERVAL_AFTER_SELECT
+        printf "power on\n\n"
+        sleep $INTERVAL_AFTER_POWER_ON
+
+        while [[ "$(connected)" = "yes" ]]
+        do
+          printf "disconnect ${device}\n\n"
+          sleep $INTERVAL_AFTER_DISCONNECT
+
+          let retry_count--
+          if [ "$retry_count" -le 0 ]; then
+            break
+          fi
+        done
 
         while [[ "$(connected)" != "yes" ]]
         do
