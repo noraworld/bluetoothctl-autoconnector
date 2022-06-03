@@ -661,6 +661,9 @@ function usage() {
   echo -e "		Pair, trust, and connect a specified device"
   echo -e "		It attempts to pair the device forever unless it is not paired"
   echo
+  echo -e "	reconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
+  echo -e "		Reconnect (disconnect & connect) a specified device"
+  echo
   echo -e "	BLUETOOTHCTL_COMMAND DEVICE_NAME|DEVICE_BD_ADDRESS"
   echo -e "		Operate any bluetoothctl command to a specified device"
   echo -e "		e.g. \"$PROGNAME connect macbook\""
