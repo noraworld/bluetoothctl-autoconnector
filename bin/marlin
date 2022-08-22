@@ -280,6 +280,38 @@ function operate() {
         printf "exit\n\n"
       } | bluetoothctl
     ;;
+    "redisconnect")
+      {
+        printf "select ${adapter}\n\n"
+        sleep $INTERVAL_AFTER_SELECT
+        printf "power on\n\n"
+        sleep $INTERVAL_AFTER_POWER_ON
+
+        while [[ "$(connected)" != "yes" ]]
+        do
+          printf "connect ${device}\n\n"
+          sleep $INTERVAL_AFTER_CONNECT
+
+          let retry_count--
+          if [ "$retry_count" -le 0 ]; then
+            break
+          fi
+        done
+
+        while [[ "$(connected)" = "yes" ]]
+        do
+          printf "disconnect ${device}\n\n"
+          sleep $INTERVAL_AFTER_DISCONNECT
+
+          let retry_count--
+          if [ "$retry_count" -le 0 ]; then
+            break
+          fi
+        done
+
+        printf "exit\n\n"
+      } | bluetoothctl
+    ;;
     *)
       {
         printf "select ${adapter}\n\n"
@@ -663,6 +695,9 @@ function usage() {
   echo
   echo -e "	reconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
   echo -e "		Reconnect (disconnect & connect) a specified device"
+  echo
+  echo -e "	redisconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
+  echo -e "		Redisconnect (connect & disconnect) a specified device"
   echo
   echo -e "	BLUETOOTHCTL_COMMAND DEVICE_NAME|DEVICE_BD_ADDRESS"
   echo -e "		Operate any bluetoothctl command to a specified device"

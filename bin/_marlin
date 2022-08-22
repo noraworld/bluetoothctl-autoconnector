@@ -10,6 +10,7 @@ _marlin() {
     "delete[Delete specified devices paired with adapters]"
     "disconnect[Disconnect specified devices]"
     "reconnect[Reconnect specified devices]"
+    "redisconnect[Redisconnect specified devices]"
     "info[Show specified devices' information]"
     "list[Show all devices paired with adapters]"
     "register[Pair, trust, and connect specified devices]"
