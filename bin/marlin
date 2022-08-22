@@ -280,7 +280,7 @@ function operate() {
         printf "exit\n\n"
       } | bluetoothctl
     ;;
-    "redisconnect")
+    "re-disconnect")
       {
         printf "select ${adapter}\n\n"
         sleep $INTERVAL_AFTER_SELECT
@@ -696,8 +696,8 @@ function usage() {
   echo -e "	reconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
   echo -e "		Reconnect (disconnect & connect) a specified device"
   echo
-  echo -e "	redisconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
-  echo -e "		Redisconnect (connect & disconnect) a specified device"
+  echo -e "	re-disconnect DEVICE_NAME|DEVICE_BD_ADDRESS"
+  echo -e "		Re-disconnect (connect & disconnect) a specified device"
   echo
   echo -e "	BLUETOOTHCTL_COMMAND DEVICE_NAME|DEVICE_BD_ADDRESS"
   echo -e "		Operate any bluetoothctl command to a specified device"
