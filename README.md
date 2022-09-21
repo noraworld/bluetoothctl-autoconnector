@@ -1,3 +1,80 @@
+## Installation
+TBA
+
+## Usage
+### Create an alias file
+At first, you need to create an alias file called `~/.marlin_aliases`, and add your Bluetooth device address and device alias paired like this:
+
+```shell
+# ~/.marlin_aliases
+
+XX:XX:XX:XX:XX:XX iPhone
+YY:YY:YY:YY:YY:YY MacBook
+ZZ:ZZ:ZZ:ZZ:ZZ:ZZ Oculus Quest
+```
+
+A portion of alias can be set whatever you like so that you can be easy to understand what device is later.
+
+### Register
+This subcommand pairs your Bluetooth device to your Linux device.
+
+```shell
+marlin register iPhone
+```
+
+Your iPhone should be paired to your Linux device like Raspberry Pi after performing the command above.
+
+### Connect
+This subcommand connects your Bluetooth device with your Linux device.
+
+```shell
+marlin connect iPhone
+```
+
+Your iPhone should be connected to your Linux device.
+
+The `connect` subcommand is not a marlin's one, but in that case, it is passed to `bluetoothctl` command as is. For the same reason, you can also use `disconnect`, `remove`, etc.
+
+For details on the command list of `bluetoothctl`, refer to [here (for English readers)](https://www.makeuseof.com/manage-bluetooth-linux-with-bluetoothctl/) or [here (for Japanese readers)](https://zenn.dev/noraworld/articles/bluetoothctl-commands).
+
+### List
+This subcommand shows all the devices you paired.
+
+```shell
+marlin list
+```
+
+### Alias
+This subcommand shows all the aliases you set in `~/.marlin_aliases`.
+
+```shell
+marlin alias
+```
+
+### Info
+This subcommand shows a specific device's information.
+
+```shell
+marlin info iPhone
+```
+
+### Others
+There are more it can do for you. To see all the usages, use the `--help` option.
+
+```shell
+marlin --help
+```
+
+
+
+
+
+
+
+
+
+
+
 # bluetoothctl-autoconnector
 A tool for bluetoothctl to connect all/any devices automatically.
 
