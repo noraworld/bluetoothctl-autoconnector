@@ -312,6 +312,32 @@ function operate() {
         printf "exit\n\n"
       } | bluetoothctl
     ;;
+    "autoconnect")
+      if [[ "$(connected)" = "yes" ]]
+      then
+        echo "device already connected"
+      else
+        {
+          printf "select ${adapter}\n\n"
+          sleep $INTERVAL_AFTER_SELECT
+          printf "power on\n\n"
+          sleep $INTERVAL_AFTER_POWER_ON
+
+          while [[ "$(connected)" != "yes" ]]
+          do
+            printf "connect ${device}\n\n"
+            sleep $INTERVAL_AFTER_CONNECT
+
+            let retry_count--
+            if [ "$retry_count" -le 0 ]; then
+              break
+            fi
+          done
+
+          printf "exit\n\n"
+        } | bluetoothctl
+      fi
+    ;;
     *)
       {
         printf "select ${adapter}\n\n"
