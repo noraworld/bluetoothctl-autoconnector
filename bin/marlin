@@ -317,6 +317,10 @@ function operate() {
       then
         echo "device already connected"
       else
+        if [ "$log_file" != "" ]; then
+          echo "Attempting to connect ${device} to ${adapter} on $(date)" | tee -a "$log_file"
+        fi
+
         {
           printf "select ${adapter}\n\n"
           sleep $INTERVAL_AFTER_SELECT
@@ -747,6 +751,10 @@ function usage() {
   echo -e "		when executing the command that tries to be continued until succeeding"
   echo -e "		If this option is not set, it tries to retry infinitely as long as not succeeding"
   echo -e "		NOTE: This option is implemented only with \"$PROGNAME connect\" for now"
+  echo
+  echo -e "	-l FILE_PATH, --log=FILE_PATH"
+  echo -e "		Output the log to the specified file"
+  echo -e "		This option is available on only autoconnect so far"
 }
 
 
@@ -771,6 +779,17 @@ do
       if ! $(is_integer $retry_count && echo true || echo false); then
         echo "\"$retry_count\" is not a number" 1>&2
         exit 1
+      fi
+    ;;
+    '-l' | '--log' | --log=* )
+      if [[ "$1" =~ ^--log= ]]; then
+        log_file=$(echo $1 | sed -e 's/^--log=//')
+      elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+        echo "$PROGNAME: \"$1\" requires an argument" 1>&2
+        exit 1
+      else
+        log_file="$2"
+        shift 2
       fi
     ;;
     '--' | '-' )
