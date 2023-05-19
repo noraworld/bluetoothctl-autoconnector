@@ -89,8 +89,11 @@ function main() {
     "pulse")
       pulse
     ;;
-    "list-sink-inputs")
-      list_sink_inputs
+    "pacmd-list-sink-inputs")
+      pacmd_list_sink_inputs
+    ;;
+    "pactl-list-sink-inputs")
+      pactl_list_sink_inputs
     ;;
     "log")
       less +F $LOGPATH
@@ -605,11 +608,64 @@ function confirm() {
 
 
 function pulse() {
-  watch -d -n 1 -t "$PROGNAME list-sink-inputs"
+  watch -d -n 1 -t "$PROGNAME pactl-list-sink-inputs"
 }
 
 
-function list_sink_inputs() {
+function pactl_list_sink_inputs() {
+  # terminal lines
+  lines="$(tput lines)"
+
+  pactl="$(pactl list sink-inputs)"
+
+  # show full output
+  if [[ $lines -ge $(echo "${pactl}" | wc -l) ]]; then
+    echo "${pactl}"
+    exit 0
+  fi
+
+  pactl_short="$(echo "${pactl}" | grep            \
+               -e "Sink Input #[0-9]*"             \
+               -e "Sink: [0-9]*"                   \
+               -e "Sample Specification:"          \
+               -e "Buffer Latency: [0-9|\.]* usec" \
+               -e "Sink Latency: [0-9|\.]* usec"   \
+               -e "Resample method: "              \
+               -e "Properties:"                    \
+               -e "api\.bluez5\.profile = "        \
+               -e "media\.name = ")"
+
+  # show short output
+  if [[ $lines -ge $(echo "${pactl_short}" | wc -l) ]]; then
+    echo "${pactl_short}"
+    exit 0
+  fi
+
+  pactl_short2="$(echo "${pactl_short}" | grep      \
+                -e "Sink Input #[0-9]*"             \
+                -e "Sample Specification:"          \
+                -e "Buffer Latency: [0-9|\.]* usec" \
+                -e "Sink Latency: [0-9|\.]* usec"   \
+                -e "api\.bluez5\.profile = "        \
+                -e "media\.name = ")"
+
+  # show much shorter output
+  if [[ $lines -ge $(echo "${pactl_short2}" | wc -l) ]]; then
+    echo "${pactl_short2}"
+    exit 0
+  fi
+
+  pactl_short3="$(echo "${pactl_short2}" | grep     \
+                -e "Sink Input #[0-9]*"             \
+                -e "Buffer Latency: [0-9|\.]* usec" \
+                -e "api\.bluez5\.profile = "        \
+                -e "media\.name = ")"
+
+  echo "${pactl_short3}"
+}
+
+
+function pacmd_list_sink_inputs() {
   # terminal lines
   lines="$(tput lines)"
 
