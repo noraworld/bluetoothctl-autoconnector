@@ -513,7 +513,6 @@ function refresh() {
   echo "Reloading daemons configuration..."
   sudo systemctl daemon-reload
   sleep $INTERVAL_AFTER_DAEMON_RESTART
-  echo
 
   echo "Restarting Bluetooth daemon..."
   sudo systemctl restart bluetooth
@@ -523,17 +522,32 @@ function refresh() {
     echo "Bluetooth daemon has not been restarted yet. Wait a sec..."
     sleep $INTERVAL_AFTER_DAEMON_RESTART
   done
-  echo
 
-  echo "Restarting PulseAudio daemon..."
-  systemctl --user restart pulseaudio
-  sleep $INTERVAL_AFTER_DAEMON_RESTART
-  while [[ "$(systemctl --user is-active pulseaudio)" != "active" ]]
-  do
-    echo "PulseAudio daemon has not been restarted yet. Wait a sec..."
+  if [ "$(systemctl --user is-enabled pulseaudio)" != "masked" ]; then
+    echo "Restarting PulseAudio daemon..."
+    systemctl --user restart pulseaudio
     sleep $INTERVAL_AFTER_DAEMON_RESTART
-  done
-  echo
+    while [[ "$(systemctl --user is-active pulseaudio)" != "active" ]]
+    do
+      echo "PulseAudio daemon has not been restarted yet. Wait a sec..."
+      sleep $INTERVAL_AFTER_DAEMON_RESTART
+    done
+  else
+    echo "PulseAudio daemon is masked. Skipped."
+  fi
+
+  if [ "$(systemctl --user is-enabled pipewire{,-pulse}.{socket,service} | grep -c masked)" -eq 0 ]; then
+    echo "Restarting PipeWire daemon..."
+    systemctl --user restart pipewire{,-pulse}.{socket,service}
+    sleep $INTERVAL_AFTER_DAEMON_RESTART
+    while [[ "$(systemctl --user is-active pipewire{,-pulse}.{socket,service} | grep -cv active)" -gt 0 ]]
+    do
+      echo "PipeWire daemon has not been restarted yet. Wait a sec..."
+      sleep $INTERVAL_AFTER_DAEMON_RESTART
+    done
+  else
+    echo "PipeWire daemon is masked. Skipped."
+  fi
 
   echo "Restarting the dummy sound daemon..."
   systemctl --user restart dummy-sound
@@ -543,7 +557,6 @@ function refresh() {
     echo "The dummy sound daemon has not been restarted yet. Wait a sec..."
     sleep $INTERVAL_AFTER_DAEMON_RESTART
   done
-  echo
 
   echo "Checking success of operation..."
   echo
@@ -556,6 +569,9 @@ function is_refreshed() {
   devices="$($PROGNAME list 2>/dev/null)"
   bluetooth_is_active="$(systemctl is-active bluetooth)"
   pulseaudio_is_active="$(systemctl --user is-active pulseaudio)"
+  pulseaudio_is_enabled="$(systemctl --user is-enabled pulseaudio)"
+  pipewire_is_active="$(systemctl --user is-active pipewire{,-pulse}.{socket,service})"
+  pipewire_is_enabled="$(systemctl --user is-enabled pipewire{,-pulse}.{socket,service})"
   dummy_sound_is_active="$(systemctl --user is-active dummy-sound)"
 
   if [[ $devices != "" ]]; then
@@ -566,17 +582,38 @@ function is_refreshed() {
     echo -e "\033[1;91mBluetooth daemon is not running\033[00m" >&2
   fi
 
-  if [[ $pulseaudio_is_active != "active" ]]; then
+  if [[ $pulseaudio_is_enabled = "masked" ]]; then
+    echo -e "PulseAudio daemon is masked\033[00m" >&2
+  elif [[ $pulseaudio_is_active = "active" ]]; then
+    :
+  else
     echo -e "\033[1;91mPulseAudio daemon is not running\033[00m" >&2
+  fi
+
+  if [[ $(echo "$pipewire_is_enabled" | grep -c masked) -eq 4 ]]; then
+    echo -e "PipeWire daemon is masked\033[00m" >&2
+  elif [[ $(echo "$pipewire_is_active" | grep -c active) -eq 4 ]]; then
+    :
+  else
+    echo -e "\033[1;91mPipeWire daemon is not running\033[00m" >&2
   fi
 
   if [[ $dummy_sound_is_active != "active" ]]; then
     echo -e "\033[1;91mThe dummy sound daemon is not running\033[00m" >&2
   fi
 
-  if [[ $devices = "" ]] && [[ $bluetooth_is_active = "active" ]] && [[ $pulseaudio_is_active = "active" ]] && [[ $dummy_sound_is_active = "active" ]]; then
-    echo -e "\033[1;92mDeleted all devices information and restart all daemons successfully!\033[00m"
-    echo -e "\033[1;93mIt is highly recommended to restart your computer\033[00m"
+  if [[ $devices = "" ]] && [[ $bluetooth_is_active = "active" ]] && [[ $dummy_sound_is_active = "active" ]]; then
+    if [[ $pulseaudio_is_active = "active" ]] && [[ $(echo "$pipewire_is_enabled" | grep -c masked) -eq 4 ]]; then
+      echo -e "\033[1;92mDeleted all devices information and restart all daemons successfully!\033[00m"
+      echo -e "\033[1;92mYou are using PulseAudio (not PipeWire)\033[00m"
+      echo -e "\033[1;93mIt is highly recommended to restart your computer\033[00m"
+    elif [[ $(echo "$pipewire_is_active" | grep -c active) -eq 4 ]] && [[ $pulseaudio_is_enabled = "masked" ]]; then
+      echo -e "\033[1;92mDeleted all devices information and restart all daemons successfully!\033[00m"
+      echo -e "\033[1;92mYou are using PipeWire (not PulseAudio)\033[00m"
+      echo -e "\033[1;93mIt is highly recommended to restart your computer\033[00m"
+    else
+      echo -e "\033[1;91mUnknown status\033[00m" >&2
+    fi
   else
     exit 2
   fi
@@ -591,7 +628,7 @@ function play() {
 
 
 function confirm() {
-  echo -e "\033[1;92mTIPS: It is highly recommended to execute this operation both before and after changing settings of Bluetooth and PulseAudio\033[00m"
+  echo -e "\033[1;92mTIPS: It is highly recommended to execute this operation both before and after changing settings of Bluetooth and PulseAudio (or PipeWire)\033[00m"
   echo
   echo -e "This operation will delete all devices paired with adapters, and will restart Bluetooth and PulseAudio daemons to reflect changes of settings"
   echo -n "Are you sure you want to continue? [y/n]: "
