@@ -146,9 +146,16 @@ function get_adapters() {
 }
 
 
+# Don't do echo debug here!
 function list() {
   get_adapters
   paired_devices=$(echo -e ${adapters_cmd[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort)
+
+  if [ "$ignored_devices" != "" ]; then
+    for device in $(echo "${ignored_devices}" | tr ',' '\n'); do
+      paired_devices=$(echo "${paired_devices}" | grep -iv "$device")
+    done
+  fi
 
   if [[ "${paired_devices}" != "" ]]; then
     echo "${paired_devices}"
@@ -843,6 +850,12 @@ function usage() {
   echo -e "	-h, --help"
   echo -e "		Show this help message and exit"
   echo
+  echo -e "	-i IGNORED_DEVICES, --ignore=IGNORED_DEVICES"
+  echo "		Ignore specified devices"
+  echo "		when you specify \"all\", all devices except for specified ones are covered"
+  echo "		NOTE: This option uses \"grep -iv\", so it works even if a part of devices' names are passed"
+  echo "		NOTE: If you want to specify multiple devices, use \",\" delimiter"
+  echo
   echo -e "	-r NUMBER, --retry=NUMBER"
   echo -e "		Retry only the specified number of times"
   echo -e "		when executing the command that tries to be continued until succeeding"
@@ -861,6 +874,17 @@ do
     '-h' | '--help' )
       usage
       exit 0
+    ;;
+    '-i' | '--ignore' | --ignore=* )
+      if [[ "$1" =~ ^--ignore= ]]; then
+        ignored_devices=$(echo $1 | sed -e 's/^--ignore=//')
+      elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+        echo "$PROGNAME: \"$1\" requires an argument" 1>&2
+        exit 1
+      else
+        ignored_devices="$2"
+        shift 2
+      fi
     ;;
     '-r' | '--retry' | --retry=* )
       if [[ "$1" =~ ^--retry= ]]; then
