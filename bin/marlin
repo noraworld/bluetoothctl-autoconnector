@@ -215,7 +215,7 @@ function operate() {
     "info" | "status")
       echo -e "select ${adapter}\n\ninfo ${device}\n\n" |
         bluetoothctl |
-        grep -e "Name: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " |
+        grep -e "Alias: " -e "Paired: " -e "Trusted: " -e "Blocked: " -e "Connected: " |
         sed "s/^[ \t]*//" |
         egrep -e "|Paired: no" -e "|Trusted: no" -e "|Blocked: yes" -e "|Connected: no" --color
     ;;
