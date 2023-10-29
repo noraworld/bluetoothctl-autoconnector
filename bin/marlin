@@ -152,9 +152,11 @@ function list() {
   paired_devices=$(echo -e ${adapters_cmd[@]} | bluetoothctl | grep "Device " | sed -e "s/^Device //" | sort)
 
   if [ "$ignored_devices" != "" ]; then
-    for device in $(echo "${ignored_devices}" | tr ',' '\n'); do
-      paired_devices=$(echo "${paired_devices}" | grep -iv "$device")
-    done
+    egrep_formatted_ignored_devices="${ignored_devices/,/|}"
+    paired_devices=$(echo "$paired_devices" | egrep -iv "$egrep_formatted_ignored_devices")
+  elif [ "$specific_devices" != "" ]; then
+    egrep_formatted_specific_devices="${specific_devices/,/|}"
+    paired_devices=$(echo "$paired_devices" | egrep -i "$egrep_formatted_specific_devices")
   fi
 
   if [[ "${paired_devices}" != "" ]]; then
@@ -850,6 +852,12 @@ function usage() {
   echo -e "	-h, --help"
   echo -e "		Show this help message and exit"
   echo
+  echo -e "	-o SPECIFIC_DEVICES, --only=SPECIFIC_DEVICES"
+  echo "		Apply to only specific devices"
+  echo "		when you use this option, you should specify \"all\""
+  echo "		NOTE: This option uses \"grep -i\", so it works even if a part of devices' names are passed"
+  echo "		NOTE: If you want to specify multiple devices, use \",\" delimiter"
+  echo
   echo -e "	-i IGNORED_DEVICES, --ignore=IGNORED_DEVICES"
   echo "		Ignore specified devices"
   echo "		when you specify \"all\", all devices except for specified ones are covered"
@@ -874,6 +882,17 @@ do
     '-h' | '--help' )
       usage
       exit 0
+    ;;
+    '-o' | '--only' | --only=* )
+      if [[ "$1" =~ ^--only= ]]; then
+        specific_devices=$(echo $1 | sed -e 's/^--only=//')
+      elif [[ -z "$2" ]] || [[ "$2" =~ ^-+ ]]; then
+        echo "$PROGNAME: \"$1\" requires an argument" 1>&2
+        exit 1
+      else
+        specific_devices="$2"
+        shift 2
+      fi
     ;;
     '-i' | '--ignore' | --ignore=* )
       if [[ "$1" =~ ^--ignore= ]]; then
