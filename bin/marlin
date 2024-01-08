@@ -38,6 +38,7 @@ function main() {
   adapters_cmd=()
 
   initialize_options
+  health
 
   case "$subcommand" in
     "" | "list")
@@ -560,10 +561,8 @@ function health() {
         fi
       fi
 
-      if [ "$ok" = "true" ]; then
-        echo "1"
-      else
-        echo "-1"
+      if [ "$ok" = "false" ]; then
+        exit 1
       fi
     ;;
     "detail")
