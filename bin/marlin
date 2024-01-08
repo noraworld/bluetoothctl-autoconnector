@@ -141,6 +141,7 @@ function get_adapters() {
   done <<< "$(bluetoothctl -- list)"
 
   if [[ "${argv[0]}" = "all" ]] && [[ "${argv[1]}" = "" ]]; then
+    # TODO: Fix problem of infinite loop without a single adapter.
     argv=( $(list | sed -r "s/([0-9A-F]{2}:){5}[0-9A-F]{2} //g" | sed -r "s/ /\\\ /g") )
   fi
 }
