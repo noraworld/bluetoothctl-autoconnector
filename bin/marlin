@@ -99,7 +99,18 @@ function main() {
       less +F $LOGPATH
     ;;
     "health")
-      health
+      case "${argv[0]}" in
+        "")
+          health
+        ;;
+        "detail")
+          health detail
+        ;;
+        *)
+          echo "Unknown command: ${argv[0]}" >&2
+          exit 1
+        ;;
+      esac
     ;;
     "refresh")
       refresh
@@ -501,11 +512,68 @@ function appropriate_adapter() {
 
 
 function health() {
-  systemctl status bluetooth
-  echo
-  systemctl --user status pulseaudio
-  echo
-  systemctl --user status dummy-sound
+  case "$1" in
+    "")
+      ok="true"
+
+      if [ "$(systemctl is-active bluetooth.service)" != "active" ]; then
+        echo "bluetooth.service daemon is not running" >&2
+        ok="false"
+      fi
+
+      if [ "$(systemctl --user is-active pulseaudio.{socket,service} | grep -c "^active$")" -ne 2 ]; then
+        if [ "$(systemctl --user is-active pipewire.service)" != "active" ]; then
+          echo "pipewire.service is not running" >&2
+          ok="false"
+        fi
+
+        if [ "$(systemctl --user is-active pipewire.socket)" != "active" ]; then
+          echo "pipewire.socket is not running" >&2
+          ok="false"
+        fi
+
+        if [ "$(systemctl --user is-active pipewire-pulse.service)" != "active" ]; then
+          echo "pipewire-pulse.service is not running" >&2
+          ok="false"
+        fi
+
+        if [ "$(systemctl --user is-active pipewire-pulse.socket)" != "active" ]; then
+          echo "pipewire-pulse.socket is not running" >&2
+          ok="false"
+        fi
+
+        if [ "$(systemctl --user is-active wireplumber.service)" != "active" ]; then
+          echo "wireplumber.service is not running" >&2
+          ok="false"
+        fi
+      fi
+
+      if [ "$(systemctl --user is-active pipewire{,-pulse}.{socket,service} wireplumber | grep -c "^active$")" -ne 5 ]; then
+        if [ "$(systemctl --user is-active pulseaudio.service)" != "active" ]; then
+          echo "pulseaudio.service is not running" >&2
+          ok="false"
+        fi
+
+        if [ "$(systemctl --user is-active pulseaudio.socket)" != "active" ]; then
+          echo "pulseaudio.socket is not running" >&2
+          ok="false"
+        fi
+      fi
+
+      if [ "$ok" = "true" ]; then
+        echo "1"
+      else
+        echo "-1"
+      fi
+    ;;
+    "detail")
+      systemctl status bluetooth
+      echo
+      systemctl --user status pulseaudio
+      echo
+      systemctl --user status dummy-sound
+    ;;
+  esac
 }
 
 
